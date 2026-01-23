@@ -3,38 +3,13 @@ layout: default
 title:  Home
 ---
 
-Source code: https://github.com/wpgoalie/cs175-Project-Team-2
+![Cheese Variation Snake Game](https://image.idntimes.com/post/20230803/snake-cheese-7d76f2d0dbc8e7b90df4c082feb7561b-8356234e322a6af150b7b460d98f82e1.png)
+
+Source code: [https://github.com/wpgoalie/cs175-Project-Team-2
+](https://github.com/wpgoalie/cs175-Project-Team-2)
 
 Reports:
 
 - [Proposal](proposal.html)
 - [Status](status.html)
 - [Final](final.html)
-
-What's Markdown (`.md`)?
-
-Markdown is markup that lets you write hypertext (HTML) documents
-in easy-to-read and easy-to-write plain text.
-No angle brackets `<></>` required for
-paragraphs, lists, blockquotes, tables, etc.
-
-
-This is a paragraph (in Markdown). Some more
-text here.
-
-This is another paragraph.
-
-This is a list:
-
-- Orange
-- Apple
-- Blueberry
-
-$$x^2 = y^2$$
-
-
-Just getting started with Markdown?
-See the [HTML <-> Markdown Quick Reference (Cheat Sheet)][quickref].
-
-
-[quickref]: https://github.com/mundimark/quickrefs/blob/master/HTML.md
