@@ -6,7 +6,7 @@ title:  Proposal
 
 The classic Snake Game traditionally consists of one snake collecting as many apples as it can without running into a wall or itself. At each point, a snake can choose to turn left or right by 90 degrees, or continue moving forward. The cheese variation of the game introduces a new level of complexity, as the snake's body is now split apart so that it only occupies every other tile. This allows the snake to move through itself through these open sections, but it also means that when the snake consumes an apple, it will grow by two tiles, one open secion and another its body. This will force the snake to have to maneuver through itself in order to achieve high scores, and also constrains where the apples can spawn since it cannot spawn within the body, making its spawning locations more predictable. 
 
-Our project will focus on this implementation of the game, and we will aim to train an agent to efficiently navigate the board and utilize the gaps in its body in order to maximize the average score of the snake. We hope that the agent will leverage information about the snake, the possible fruit spawning locations, and the gaps in its body to score as much as possible and position itself in a way that allows for maximized fruit spawning.
+Our application-driven project will focus on this implementation of the game, and we will aim to train an agent to efficiently navigate the board and utilize the gaps in its body in order to maximize the average score of the snake. We hope that the agent will leverage information about the snake, the possible fruit spawning locations, and the gaps in its body to score as much as possible and position itself in a way that allows for maximized fruit spawning.
 
 ## Project goals
 
