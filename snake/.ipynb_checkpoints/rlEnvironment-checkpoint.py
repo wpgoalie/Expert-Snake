@@ -21,14 +21,15 @@ class snakeRLEnvironment(gym.Env):
                 }
             )
     
-            self.action_space = gym.spaces.Discrete(3)
+            self.action_space = gym.spaces.Discrete(4)
     
             # Map action numbers to actual movements on the grid
             # This makes the code more readable than using raw numbers
             self._action_to_direction = {
-                0: np.array([0, 1]),   # turn right (column + 1)
-                1: np.array([0, -1]),  # turn left (column - 1)
-                2: np.array([0, 0]),  # Continue forward (no directional change)
+                0: "UP",   # move up
+                1: "DOWN",  # move down
+                2: "LEFT",  # move left
+                3: "RIGHT" # move right
             }
 
     def _get_obs(self):
@@ -95,11 +96,9 @@ class snakeRLEnvironment(gym.Env):
         # Map the discrete action (0-2) to a movement direction
         direction = self._action_to_direction[action]
 
-        # Update agent position, ensuring it stays within grid bounds
-        # np.clip prevents the agent from walking off the edge
-        self._agent_location = np.clip(
-            self._agent_location + direction, 0, self.size - 1
-        )
+        self.game.step_function(direction)
+        self._agent_location = self.game.snake_position
+        self._target_location = self.game.fruit_position
 
         # Check if agent reached the target
         terminated = np.array_equal(self._agent_location, self._target_location)
