@@ -1,8 +1,10 @@
 import gymnasium as gym
 from snakeGameCheese import snakeGame
+from typing import Optional
+import numpy as np
 
 class snakeRLEnvironment(gym.Env):
-    def __init__(self, length_of_grid_x, length_of_grid_y):
+    def __init__(self, length_of_grid_x = 30, length_of_grid_y = 24):
             self.game = snakeGame()
             self.length_of_grid_x = length_of_grid_x
             self.length_of_grid_y = length_of_grid_y
@@ -16,8 +18,8 @@ class snakeRLEnvironment(gym.Env):
             # Dict space gives us structured, human-readable observations
             self.observation_space = gym.spaces.Dict(
                 {
-                    "agent": gym.spaces.Box(0, size - 1, shape=(2,), dtype=int),   # [x, y] coordinates
-                    "target": gym.spaces.Box(0, size - 1, shape=(2,), dtype=int),  # [x, y] coordinates
+                    "agent": gym.spaces.Box(0, self.length_of_grid_x - 1, shape=(2,), dtype=int),   # [x, y] coordinates
+                    "target": gym.spaces.Box(0, self.length_of_grid_x - 1, shape=(2,), dtype=int),  # [x, y] coordinates
                 }
             )
     
