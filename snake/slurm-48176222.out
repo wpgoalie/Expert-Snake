@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/data/class/cs175/sdzhigne/Expert-Snake/snake/snakeAgent.py", line 3, in <module>
-    import spinup
-ModuleNotFoundError: No module named 'spinup'

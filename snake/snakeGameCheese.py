@@ -1,4 +1,4 @@
-# Source: https://www.geeksforgeeks.org/python/snake-game-in-python-using-pygame-module/
+# Source: https://www.geeksforgeeks.org/python/snake-game-in-python-using-pygame-module/, but edited for cheese variation
 import pygame
 import numpy as np
 import random
