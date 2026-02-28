@@ -33,17 +33,5 @@ def main():
     print(f'Average Episode Length: {avg_length:.1f}')
 
 if __name__ == '__main__':
-    # set_environment = snakeRLEnvironment()
-    # obs, info = set_environment.reset()
-    
-    # for i in range(50):
-    #     current_action = set_environment.action_space.sample()
-    #     print("CURRENT ACTION", current_action)
-    #     observation, reward, terminated, truncated, info = set_environment.step(current_action)
-    #     print("REWARD", reward)
-
-    #     if terminated:
-    #         print("RESET")
-    #         obs, info = set_environment.reset()
     main()
         

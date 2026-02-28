@@ -9,7 +9,7 @@ import time
 # NOTE FOR FUTURE: normalizing improves convergence and stability (coordinates can be normalized)
 
 class snakeGameCheese():
-    def __init__(self, grid_size = np.array([800, 800], dtype=np.int32), 
+    def __init__(self, grid_size = np.array([80, 80], dtype=np.int32), 
                  fruit_position = None, 
                  snake_position = None, 
                  debug = False, draw = False):

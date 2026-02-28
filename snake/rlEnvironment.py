@@ -23,6 +23,7 @@ class snakeRLEnvironment(gym.Env):
             debug=False,
             draw=False
         )
+        self.prev_direction = self.game.direction
     
         # Initialize positions - will be set randomly in reset()
         # Using -1,-1 as "uninitialized" state
@@ -208,23 +209,16 @@ class snakeRLEnvironment(gym.Env):
         # Simple reward structure: +1 for reaching target, 0 otherwise
         # Alternative: could give small negative rewards for each step to encourage efficiency (NOTE FOR FUTURE: negative reward if dies?)
         if self.game.score > prev_score:
-            reward = 2
-        else: 
-            if terminated:
-                if self.game.body_dead: # Snake died from running into its body
-                    reward = -1
-                else: # Snake dies from a wall; giving a larger penalty for wall deaths to prioritize avoiding walls earlier on
-                    reward = -1.5
-                    
-            else:
-                distance_diff = prev_distance - current_distance
-
-                if distance_diff > 0:
-                    reward = reward + ((distance_diff / max(self.length_of_grid_x, self.length_of_grid_y))) / 2
-                else:
-                    reward = reward - ((distance_diff / max(self.length_of_grid_x, self.length_of_grid_y))) / 2
-
+            reward += 5
+        elif terminated: 
+            reward -= 5
+        else:
+            reward += 0.001 # for staying alive
+            distance_diff = prev_distance - current_distance
+            reward = reward + ((distance_diff / max(self.length_of_grid_x, self.length_of_grid_y))) / 2
+            if direction != self.prev_direction:
                 reward = reward - 0.01
+        self.prev_direction = direction
 
         observation = self._get_obs()
         info = self._get_info()
@@ -239,70 +233,6 @@ class snakeRLEnvironment(gym.Env):
             return self._render_frame()
 
     def _render_frame(self):
-        # if self.window is None and self.render_mode == "human":
-        #     pygame.init()
-        #     pygame.display.init()
-            
-        #     self.window = pygame.display.set_mode(
-        #         (self.window_size, self.window_size)
-        #     )
-        
-        # if self.clock is None and self.render_mode == "human":
-        #     self.clock = pygame.time.Clock()
-
-        # snakeCanvas = pygame.Surface((self.game.size_x, self.game.size_y))
-        # snakeCanvas.fill((255, 255, 255))
-        # pix_square_size = self.game.cell_size
-
-        # # Draws the apple
-        # pygame.draw.rect(
-        #     snakeCanvas,
-        #     (255, 0, 0),
-        #     pygame.Rect(
-        #         pix_square_size * self._target_location[::-1],
-        #         (pix_square_size, pix_square_size),
-        #     ),
-        # )
-
-        # # Draws the snake head only (we might need to store the entire snake body in the agent location?)
-        # pygame.draw.circle(
-        #     snakeCanvas,
-        #     (0, 0, 255),
-        #     (self._agent_location[::-1] + 0.5) * pix_square_size,
-        #     pix_square_size / 3,
-        # )
-
-        # if self.render_mode == "human":
-        #     # The following line copies our drawings from `canvas` to the visible window
-        #     self.window.blit(snakeCanvas, snakeCanvas.get_rect())
-        #     pygame.event.pump()
-        #     pygame.display.update()
-
-        #     # We need to ensure that human-rendering occurs at the predefined framerate.
-        #     # The following line will automatically add a delay to keep the framerate stable.
-        #     self.clock.tick(self.metadata["render_fps"])
-        # else:  # rgb_array
-        #     return np.transpose(
-        #         np.array(pygame.surfarray.pixels3d(snakeCanvas)), axes=(1, 0, 2)
-        #     )
-        # pygame.init()
-        # pygame.display.set_caption('Snake Game with Cheese Variation')
-        # self.game.game_screen = pygame.display.set_mode((self.game.size_x, self.game.size_y))
-
-        # self.game.game_screen.fill('green')
-        # # draw head regardless of its assigned visibility
-        # head = self.game.snake_body[0]
-        # pygame.draw.rect(self.game.game_screen, 'cyan', pygame.Rect(head[0], head[1], self.game.cell_size, self.game.cell_size))
-        # # draw body parts alternating by body key
-        # for pos in self.game.snake_body[1:]:
-        #     if pos[2] == self.game.active_body_key: # actual body, not skipped part
-        #         pygame.draw.rect(self.game.game_screen, 'blue',
-        #                         pygame.Rect(pos[0], pos[1], self.game.cell_size, self.game.cell_size))
-        
-        # pygame.draw.rect(self.game.game_screen, 'red', pygame.Rect(
-        #     self.game.fruit_position[0], self.game.fruit_position[1], self.game.cell_size, self.game.cell_size))
-
-        # self.game.score_display('white', 'times new roman', 30)
         if self.window is None:
             self.game.fps = pygame.time.Clock()
             pygame.init()
