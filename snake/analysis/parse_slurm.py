@@ -1,8 +1,13 @@
 import re
 import pandas as pd
 
-LOG_FILE = "../data/keep_slurm/slurm-2.out"
-SAVE_PATH = "../data/metrics/training_metrics_2.csv"
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from version_index import VERSION_INDEX
+
+LOG_FILE = f"../data/keep_slurm/slurm-{VERSION_INDEX}.out"
+SAVE_PATH = f"../data/metrics/training_metrics_{VERSION_INDEX}.csv"
 
 rows = []
 current = {}

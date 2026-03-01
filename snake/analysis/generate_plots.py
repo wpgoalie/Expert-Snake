@@ -1,8 +1,13 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-FIGURE_NAME = "../data/plots/training_summary_2.png"
-DATA_FILE = "../data/metrics/training_metrics_2.csv"
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from version_index import VERSION_INDEX
+
+FIGURE_NAME = f"../data/plots/training_summary_{VERSION_INDEX}.png"
+DATA_FILE = f"../data/metrics/training_metrics_{VERSION_INDEX}.csv"
 
 # load data
 df = pd.read_csv(DATA_FILE)

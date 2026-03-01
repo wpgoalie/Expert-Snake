@@ -5,8 +5,6 @@ import numpy as np
 import pygame
 import math
 
-# NOTE FOR FUTURE: gymnasium prefers float32?
-
 class snakeRLEnvironment(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
     def __init__(self, length_of_grid_x = 30, length_of_grid_y = 24, render_mode = None):
@@ -23,12 +21,12 @@ class snakeRLEnvironment(gym.Env):
             debug=False,
             draw=False
         )
-        self.prev_direction = self.game.direction
+        self._prev_direction = self.game.direction
     
         # Initialize positions - will be set randomly in reset()
         # Using -1,-1 as "uninitialized" state
         self._agent_location = np.array([-1, -1], dtype=np.int32)
-        self._target_location = np.array([-1, -1], dtype=np.int32) # the apple
+        self._num_fruits = len(self.game.fruits)
     
         # Define what the agent can observe
         # Dict space gives us structured, human-readable observations
@@ -36,22 +34,25 @@ class snakeRLEnvironment(gym.Env):
             {
                 "agent": gym.spaces.Box(
                     low=np.array([0, 0]),
-                    high=np.array([self.length_of_grid_x - 1, self.length_of_grid_y - 1]),
-                    dtype=np.int32
+                    high=np.array([1, 1]),
+                    # high=np.array([self.length_of_grid_x - 1, self.length_of_grid_y - 1]),
+                    dtype=np.float32
                 ),
-                "target": gym.spaces.Box(
-                    low=np.array([0, 0]),
-                    high=np.array([self.length_of_grid_x - 1, self.length_of_grid_y - 1]),
-                    dtype=np.int32
+                "fruits": gym.spaces.Box(
+                    low=0, high=1, shape=(self._num_fruits, 3), dtype=np.float32
+                    # each fruit: [x, y, value]
+                    # fruit[0] = normal, fruit[1] = decay/cheese
                 ),
                 "danger": gym.spaces.Box(
                     low = 0,
                     high = 1,
                     shape=(4,),
-                    dtype=np.int32
+                    dtype=np.float32
                 ),
             }
         )
+        # for normalization in _get_obs(self)
+        self.grid_max = np.array([self.length_of_grid_x - 1, self.length_of_grid_y - 1], dtype=np.float32)
     
         self.action_space = gym.spaces.Discrete(4)
     
@@ -76,36 +77,46 @@ class snakeRLEnvironment(gym.Env):
             dangers["DOWN"],
             dangers["LEFT"],
             dangers["RIGHT"]
-        ], dtype=np.int32)
+        ], dtype=np.float32)
+
+        # initialize structure [x,y,value] for each fruit
+        fruits_arr = np.zeros((self._num_fruits, 3), dtype=np.float32)
+        # fill in fruit list
+        for i, fruit in enumerate(self.game.fruits):
+            # normalize position
+            x_norm = fruit.position[0] / self.length_of_grid_x
+            y_norm = fruit.position[1] / self.length_of_grid_y
+            # normalize value
+            value_norm = fruit.value / fruit.max_value
+            fruits_arr[i] = [x_norm, y_norm, value_norm]
+
+        agent_norm = self._agent_location / self.grid_max
         
-        return {"agent": self._agent_location, "target": self._target_location, "danger": danger_arr}
+        return {"agent": agent_norm, "fruits": fruits_arr, "danger": danger_arr}
 
     def _get_info(self):
-        """Compute auxiliary information for debugging.
-
-        Returns:
-            dict: Info with distance between agent and target
-        """
-        return {
-            "distance": np.linalg.norm(
-                self._agent_location - self._target_location, ord=1
-            )
-        }
+        info = {}
+        snake_grid = self._agent_location
+        for i, fruit in enumerate(self.game.fruits):
+            fruit_grid = fruit.position
+            dist = snake_grid - fruit_grid
+            info[f"distance_fruit_{i}"] = dist
+        return info
+        
     def _get_dangers(self):
         # should detect if next move results in collision with itself or a wall, returns dictionary of where dangers are based on direction
         head_x, head_y = self.game.snake_position
-        step = self.game.cell_size
 
-        potential_positions = {"UP": (head_x, head_y - step), 
-                               "DOWN": (head_x, head_y + step), 
-                               "LEFT": (head_x - step, head_y), 
-                               "RIGHT": (head_x + step, head_y),}
+        potential_positions = {"UP": (head_x, head_y - 1), 
+                               "DOWN": (head_x, head_y + 1), 
+                               "LEFT": (head_x - 1, head_y), 
+                               "RIGHT": (head_x + 1, head_y),}
         dangers = {}
 
         for direction, (nx, ny) in potential_positions.items():
             danger = 0
             # boundary/wall check
-            if nx < 0 or nx >= self.game.size_x or ny < 0 or ny >= self.game.size_y:
+            if nx < 0 or nx >= self.length_of_grid_x  or ny < 0 or ny >= self.length_of_grid_y:
                 danger = 1
             # body collision check
             for segment in self.game.snake_body[1:]:
@@ -138,17 +149,17 @@ class snakeRLEnvironment(gym.Env):
                     self.np_random.integers(0, self.length_of_grid_x),
                     self.np_random.integers(0, self.length_of_grid_y),
                 ], dtype=np.int32)
-                # Randomly place target in a different location than agent
-                while True:
-                    self._target_location = np.array([
-                        self.np_random.integers(0, self.length_of_grid_x),
-                        self.np_random.integers(0, self.length_of_grid_y),
-                    ], dtype=np.int32)
-                    if not np.array_equal(self._target_location, self._agent_location):
-                        break
+                # game already takes care of this part
+                # # Randomly place target in a different location than agent
+                # while True:
+                #     self._target_location = np.array([
+                #         self.np_random.integers(0, self.length_of_grid_x),
+                #         self.np_random.integers(0, self.length_of_grid_y),
+                #     ], dtype=np.int32)
+                #     if not np.array_equal(self._target_location, self._agent_location):
+                #         break
                 self.game = snakeGameCheese(
                     grid_size=np.array([self.length_of_grid_x, self.length_of_grid_y]),
-                    fruit_position=self._target_location,
                     snake_position=self._agent_location,
                     debug=False,
                     draw=False
@@ -160,6 +171,7 @@ class snakeRLEnvironment(gym.Env):
 
         observation = self._get_obs()
         info = self._get_info()
+        self._prev_direction = self.game.direction
 
         return observation, info
 
@@ -175,19 +187,21 @@ class snakeRLEnvironment(gym.Env):
         # Map the discrete action (0-2) to a movement direction
         direction = self._action_to_direction[action]
         prev_score = self.game.score
-        prev_distance = 0
-        try:
-            x_calc = float(self.game.fruit_position[0]) - float(self.game.snake_position[0])
-            y_calc = float(self.game.fruit_position[1]) - float(self.game.snake_position[1])
-            prev_distance = math.sqrt((x_calc) ** 2 + (y_calc) ** 2) # Euclidean Distance
-        except ValueError:
-            prev_distance = 0
+        # prev_distance = 0
+        # try:
+        #     x_calc = float(self.game.fruit_position[0]) - float(self.game.snake_position[0])
+        #     y_calc = float(self.game.fruit_position[1]) - float(self.game.snake_position[1])
+        #     prev_distance = math.sqrt((x_calc) ** 2 + (y_calc) ** 2) # Euclidean Distance
+        # except ValueError:
+        #     prev_distance = 0
+
+        prev_distances = [np.linalg.norm(self._agent_location - fruit.position) for fruit in self.game.fruits]
         
         self.game.step_function(direction)
 
         # Convert pixel positions back to grid positions
-        self._agent_location = self.game.snake_position // self.game.cell_size
-        self._target_location = self.game.fruit_position // self.game.cell_size
+        self._agent_location = self.game.snake_position
+        self._target_locations = [fruit.position for fruit in self.game.fruits]
 
         # Check if agent reached the target or died
         terminated = self.game.wall_dead or self.game.body_dead # Game terminates if either snake runs into itself or a wall
@@ -196,29 +210,39 @@ class snakeRLEnvironment(gym.Env):
         # (could add a step limit here if desired)
         truncated = False
 
-        current_distance = 0
-        try:
-            x_calc = float(self.game.fruit_position[0]) - float(self.game.snake_position[0])
-            y_calc = float(self.game.fruit_position[1]) - float(self.game.snake_position[1])
-            current_distance = math.sqrt((x_calc) ** 2 + (y_calc) ** 2) # Euclidean Distance
-        except ValueError:
-            current_distance = 0
+        # current_distance = 0
+        # try:
+        #     x_calc = float(self.game.fruit_position[0]) - float(self.game.snake_position[0])
+        #     y_calc = float(self.game.fruit_position[1]) - float(self.game.snake_position[1])
+        #     current_distance = math.sqrt((x_calc) ** 2 + (y_calc) ** 2) # Euclidean Distance
+        # except ValueError:
+        #     current_distance = 0
+        current_distances = [np.linalg.norm(self._agent_location - fruit.position) for fruit in self.game.fruits]
 
         reward = 0
 
-        # Simple reward structure: +1 for reaching target, 0 otherwise
-        # Alternative: could give small negative rewards for each step to encourage efficiency (NOTE FOR FUTURE: negative reward if dies?)
         if self.game.score > prev_score:
-            reward += 5
-        elif terminated: 
-            reward -= 5
+            reward += 5 * (self.game.score - prev_score) # fruit reward
+        elif terminated:
+            reward -= 10  # make death clearly worse than apple
         else:
-            reward += 0.001 # for staying alive
-            distance_diff = prev_distance - current_distance
-            reward = reward + ((distance_diff / max(self.length_of_grid_x, self.length_of_grid_y))) / 2
-            if direction != self.prev_direction:
-                reward = reward - 0.01
-        self.prev_direction = direction
+            # small survival reward 
+            reward += 0.001
+            # normalized distance shaping
+            max_grid = max(self.length_of_grid_x, self.length_of_grid_y)
+            for prev_d, curr_d in zip(prev_distances, current_distances):
+                distance_diff = prev_d - curr_d
+                reward += 0.2 * (distance_diff / max_grid) # comment out if uncommented DECAYFRUIT
+                # weighted sum of fruits based on inverse distance (closer fruits = more reward)
+                # reward += 0.2 * ((prev_d - curr_d) / max_grid) * (1 / (prev_d + 1e-5)) # DECAYFRUIT
+                # penalize moving away or staying same distance from fruit to prevent circling
+                if distance_diff <= 0:
+                    reward -= 0.05
+            # stronger turn penalty to reduce zigzag
+            if direction != self._prev_direction:
+                reward -= 0.05  
+                
+        self._prev_direction = direction
 
         observation = self._get_obs()
         info = self._get_info()
@@ -240,17 +264,21 @@ class snakeRLEnvironment(gym.Env):
             self.window = pygame.display.set_mode((self.game.size_x, self.game.size_y))
 
         self.window.fill('green')
-        # draw head regardless of its assigned visibility
+        # draw head
         head = self.game.snake_body[0]
-        pygame.draw.rect(self.window, 'cyan', pygame.Rect(head[0], head[1], self.game.cell_size, self.game.cell_size))
-        # draw body parts alternating by body key
-        for pos in self.game.snake_body[1:]:
-            if pos[2] == self.game.active_body_key: # actual body, not skipped part
-                pygame.draw.rect(self.window, 'blue',
-                                pygame.Rect(pos[0], pos[1], self.game.cell_size, self.game.cell_size))
+        head_pixel = self.game.grid_to_pixel(head[:2], self.game.cell_size)
+        pygame.draw.rect(self.window, 'cyan', pygame.Rect(head_pixel[0], head_pixel[1], self.game.cell_size, self.game.cell_size))
         
-        pygame.draw.rect(self.window, 'red', pygame.Rect(
-            self.game.fruit_position[0], self.game.fruit_position[1], self.game.cell_size, self.game.cell_size))
+        # draw body
+        for pos in self.game.snake_body[1:]:
+            if pos[2] == self.game.active_body_key:
+                pixel_pos = self.game.grid_to_pixel(pos[:2], self.game.cell_size)
+                pygame.draw.rect(self.window, 'blue', pygame.Rect(pixel_pos[0], pixel_pos[1], self.game.cell_size, self.game.cell_size))
+        
+        # draw all fruits
+        for fruit in self.game.fruits:
+            fruit_pixel = self.game.grid_to_pixel(fruit.position, self.game.cell_size)
+            pygame.draw.rect(self.window, fruit.color, pygame.Rect(fruit_pixel[0], fruit_pixel[1], self.game.cell_size, self.game.cell_size))
 
         # displaying score continuously
         color = 'white'

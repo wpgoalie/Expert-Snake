@@ -5,12 +5,17 @@ from gymnasium.wrappers import RecordEpisodeStatistics, RecordVideo
 
 from rlEnvironment import snakeRLEnvironment
 
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from version_index import VERSION_INDEX
+
 # parameters
-MODEL_PATH = "../data/models/ppo_snake.zip"
+MODEL_PATH = f"../data/models/ppo_snake_{VERSION_INDEX}.zip"
 NUM_EPISODES = 50
 VIDEO_FOLDER = "../data/videos/"
-SAVE_CSV = "../data/misc/eval_metrics.csv"
-SUMMARY_CSV = "../data/misc/summary_eval_metrics.csv"
+SAVE_CSV = f"../data/misc/eval_metrics_{VERSION_INDEX}.csv"
+SUMMARY_CSV = f"../data/misc/summary_eval_metrics_{VERSION_INDEX}.csv"
 RECORD_VIDEO = True
 
 env = snakeRLEnvironment(render_mode="rgb_array")

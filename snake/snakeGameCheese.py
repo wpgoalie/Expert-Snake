@@ -2,18 +2,21 @@
 import pygame
 import numpy as np
 import random
+from fruit import Fruit, DecayFruit
 
 # for debug to see death 
 import time
 
-# NOTE FOR FUTURE: normalizing improves convergence and stability (coordinates can be normalized)
-
 class snakeGameCheese():
     def __init__(self, grid_size = np.array([80, 80], dtype=np.int32), 
-                 fruit_position = None, 
+                 fruit_positions = None, 
                  snake_position = None, 
                  debug = False, draw = False):
-        
+
+        self.grid_size = grid_size
+        self.cell_size = 10
+        self.size_x = self.grid_size[0] * self.cell_size
+        self.size_y = self.grid_size[1] * self.cell_size
         self.DEBUG = debug
         self.DRAW = draw
         
@@ -28,67 +31,75 @@ class snakeGameCheese():
         self.body_dead = False
         # determine which body segment is visible
         self.active_body_key = 1
-        # grow tail for two turns each fruit
-        self.grow_tail = False
+        # keeps track of how many turns to grow for
+        self.grow_tail = 0
         
         self.score = 0
         self.direction = "RIGHT"
         self.direction_switch = self.direction
-        self.fruit_spawn = True
         
         if self.DRAW:
             self.fps = pygame.time.Clock()
 
-        # determine initial positions
-        self.cell_size = 10
-        self.size_x = grid_size[0] * self.cell_size
-        self.size_y = grid_size[1] * self.cell_size
-
         # set up snake position
         if snake_position is None:
-            mid_x = (self.size_x // 2) // self.cell_size * self.cell_size
-            mid_y = (self.size_y // 2) // self.cell_size * self.cell_size
+            mid_x = self.grid_size[0] // 2
+            mid_y = self.grid_size[1] // 2
             self.snake_position = np.array([mid_x, mid_y], dtype=np.int32)
         else:
-            self.snake_position = np.array(snake_position, dtype=np.int32) * self.cell_size
+            self.snake_position = np.array(snake_position, dtype=np.int32)
         # generate snake body
         self.snake_body = np.array([
-            [self.snake_position[0] - i * self.cell_size, self.snake_position[1], 
+            [self.snake_position[0] - i, self.snake_position[1], 
              1 if i % 2 == 0 else 0] for i in range(8)
         ], dtype=np.int32)
         # out of bounds check
         if (np.any(self.snake_body[:, 0] < 0) or 
-            np.any(self.snake_body[:, 0] >= self.size_x) or 
+            np.any(self.snake_body[:, 0] >= self.grid_size[0]) or 
             np.any(self.snake_body[:, 1] < 0) or 
-            np.any(self.snake_body[:, 1] >= self.size_y)
+            np.any(self.snake_body[:, 1] >= self.grid_size[1])
            ):
             raise ValueError("Snake body goes off the grid, adjust snake_position")
 
-        # fruit position
-        if fruit_position is None:
-            self.spawn_fruit()
+        # generate fruits and place in positions
+        self.fruits = []
+        if fruit_positions is not None:
+            self.fruits.append(Fruit(fruit_positions[0]))
+            # self.fruits.append(DecayFruit(fruit_positions[1])) # DECAYFRUIT
         else:
-            self.fruit_position = fruit_position * self.cell_size
+            self.fruits.append(Fruit(np.array([0,0])))
+            # self.fruits.append(DecayFruit(np.array([0,0]))) # DECAYFRUIT
+            # respawn each at random positions
+            for i in range(len(self.fruits)):
+                self.spawn_fruit(i)
 
         if self.DRAW:
             pygame.init()
             pygame.display.set_caption('Snake Game with Cheese Variation')
             self.game_screen = pygame.display.set_mode((self.size_x, self.size_y))
+    
+    def grid_to_pixel(self, pos, cell_size):
+        return np.array(pos) * cell_size
 
-    def spawn_fruit(self):
+    def spawn_fruit(self, index):
+        fruit_class = type(self.fruits[index])  # get fruit type
         while True:
-            grid_x = random.randrange(0, self.size_x // self.cell_size)
-            grid_y = random.randrange(0, self.size_y // self.cell_size)
-            candidate = np.array([grid_x, grid_y]) * self.cell_size
-
-            # check collision with snake body
-            collision = any(
-                (segment[0] == candidate[0] and segment[1] == candidate[1])
-                for segment in self.snake_body
+            x = random.randrange(0, self.grid_size[0])
+            y = random.randrange(0, self.grid_size[1])
+            candidate = np.array([x, y], dtype=np.int32)
+    
+            # check collisions
+            collision = any((seg[0] == x and seg[1] == y) for seg in self.snake_body)
+            fruit_collision = any(
+                (f.position[0] == x and f.position[1] == y) for i,f in enumerate(self.fruits) if i != index
             )
-            if not collision:
-                self.fruit_position = candidate
-                self.fruit_spawn = True
+    
+            if not collision and not fruit_collision:
+                # respawn the fruit at this index
+                if fruit_class == DecayFruit:
+                    self.fruits[index] = DecayFruit(candidate)
+                else:
+                    self.fruits[index] = fruit_class(candidate)
                 break
 
     def score_display(self, color, font, size):
@@ -120,13 +131,13 @@ class snakeGameCheese():
     
         # Moving the snake
         if self.direction == 'UP':
-            self.snake_position[1] -= self.cell_size
+            self.snake_position[1] -= 1
         if self.direction == 'DOWN':
-            self.snake_position[1] += self.cell_size
+            self.snake_position[1] += 1
         if self.direction == 'LEFT':
-            self.snake_position[0] -= self.cell_size
+            self.snake_position[0] -= 1
         if self.direction == 'RIGHT':
-            self.snake_position[0] += self.cell_size
+            self.snake_position[0] += 1
 
         # Snake body growing mechanism
         # determine if this is visible or inviisble segment
@@ -141,52 +152,63 @@ class snakeGameCheese():
                 print(self.snake_body, file=f)
                 print("LENGTH: ", np.sum(self.snake_body[:, 2] == self.active_body_key), file=f)
                 print('===================================================', file=f)
+                print("LEFTOVER GROWTH: ", self.grow_tail, file=f)
+                
+        for i, fruit in enumerate(self.fruits):
+            if np.array_equal(fruit.position, self.snake_position):
+                self.score += fruit.on_eat()
+                # grow tail for two turns each fruit
+                self.grow_tail += fruit.value * 2
+                if self.DEBUG:
+                    with open(self.log, "a") as f:
+                        print(f'****************EAT FRUIT: {fruit.color.upper()}, {fruit.value}*****************', file=f)
+                # respawn this fruit at same index
+                self.spawn_fruit(i)
 
-        if self.snake_position[0] == self.fruit_position[0] and self.snake_position[1] == self.fruit_position[1]:
-            self.score += 1
-            self.fruit_spawn = False
-            self.grow_tail = True
-            if self.DEBUG:
-                with open(self.log, "a") as f:
-                    print('****************APPLE*****************', file=f)
-        elif self.grow_tail:
-            self.grow_tail = False
+        # if not eaten, update fruit values
+        for i, fruit in enumerate(self.fruits):
+            fruit.update()
+            if not fruit.active: # disappears/no longer active
+                self.spawn_fruit(i)
+
+        if self.grow_tail > 0:
+            self.grow_tail -= 1
         else:
             self.snake_body = self.snake_body[:-1]
-
-        # keep spawning at random coordinate until no collision with body occurs
-        if not self.fruit_spawn:
-            self.spawn_fruit()
 
         if self.DRAW:
             self.game_screen.fill('green')
             # draw head regardless of its assigned visibility
             head = self.snake_body[0]
-            pygame.draw.rect(self.game_screen, 'cyan', pygame.Rect(head[0], head[1], self.cell_size, self.cell_size))
+            head_pixel = self.grid_to_pixel(head[:2], self.cell_size)
+            pygame.draw.rect(self.game_screen, 'cyan', pygame.Rect(head_pixel[0], head_pixel[1], self.cell_size, self.cell_size))
             # draw body parts alternating by body key
             for pos in self.snake_body[1:]:
                 if pos[2] == self.active_body_key: # actual body, not skipped part
+                    pixel_pos = self.grid_to_pixel(pos[:2], self.cell_size)
                     pygame.draw.rect(self.game_screen, 'blue',
-                                    pygame.Rect(pos[0], pos[1], self.cell_size, self.cell_size))
+                                    pygame.Rect(pixel_pos[0], pixel_pos[1], self.cell_size, self.cell_size))
             
-            pygame.draw.rect(self.game_screen, 'red', pygame.Rect(
-                self.fruit_position[0], self.fruit_position[1], self.cell_size, self.cell_size))
+            for fruit in self.fruits:
+                fruit_pixel = self.grid_to_pixel(fruit.position, self.cell_size)
+                pygame.draw.rect(self.game_screen, fruit.color, 
+                                    pygame.Rect(fruit_pixel[0], fruit_pixel[1], self.cell_size, self.cell_size))
     
         # Game Over Condition: hit walls
-        if self.snake_position[0] < 0 or self.snake_position[0] > self.size_x-self.cell_size:
+        if self.snake_position[0] < 0 or self.snake_position[0] >= self.grid_size[0]:
             if self.DEBUG:
                 with open(self.log, "a") as f:
                     print("HIT WALL IN X-DIRECTION", file=f)
                 if self.DRAW: 
-                    time.sleep(5)
+                    time.sleep(3)
             self.wall_dead = True
             return
-        if self.snake_position[1] < 0 or self.snake_position[1] > self.size_y-self.cell_size:
+        if self.snake_position[1] < 0 or self.snake_position[1] >= self.grid_size[1]:
             if self.DEBUG:
                 with open(self.log, "a") as f:
                     print("HIT WALL IN Y-DIRECTION", file=f)
                 if self.DRAW: 
-                   time.sleep(5)
+                   time.sleep(3)
             self.wall_dead = True
             return
     
@@ -217,7 +239,7 @@ class snakeGameCheese():
         while True:  
             # time delay for user to react
             if self.DRAW:
-                time.sleep(0.01)
+                time.sleep(0.05)
 
             # handling key events
             for event in pygame.event.get():
@@ -236,8 +258,12 @@ class snakeGameCheese():
                     quit()
 
             self.step_function(self.direction_switch)
+
+            # stop running game
+            if self.wall_dead or self.body_dead:
+                break
         
 
 if __name__ == "__main__":
-    newGame = snakeGameCheese(debug=True, draw=True)
+    newGame = snakeGameCheese(debug=True, draw=True, grid_size = np.array([30, 24], dtype=np.int32))
     newGame.main_game()

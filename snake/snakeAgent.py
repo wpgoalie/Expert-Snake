@@ -1,11 +1,11 @@
 import gymnasium as gym
 import numpy as np
-# import spinup
 from rlEnvironment import snakeRLEnvironment
 from stable_baselines3 import PPO
 from gymnasium.wrappers import RecordEpisodeStatistics, RecordVideo
 from pathlib import Path
-# from spinup.algos.pytorch.ppo.core import MLPActorCritic
+
+from version_index import VERSION_INDEX
 
 def environment_function():
     return snakeRLEnvironment()
@@ -22,8 +22,8 @@ def main():
     env = RecordEpisodeStatistics(env, buffer_length = 15000)
     
     model = PPO("MultiInputPolicy", env, verbose=1)
-    model.learn(total_timesteps=100_000)
-    model.save("ppo_snake")
+    model.learn(total_timesteps=5_000_000)
+    model.save(f"ppo_snake_{VERSION_INDEX}")
     env.close()
 
     avg_reward = np.average(env.return_queue)
