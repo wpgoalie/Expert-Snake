@@ -30,8 +30,8 @@ def main():
         snakeRLEnvironment(render_mode = "rgb_array"),
         video_folder="snake-agent",    # Folder to save videos
         name_prefix="eval",               # Prefix for video filenames
-        # episode_trigger=lambda x: True    # Record every episode
-        episode_trigger=lambda x: x % 100 == 0 # record every 100 episodes
+        episode_trigger=lambda x: True    # Record every episode
+        # episode_trigger=lambda x: x % 100 == 0 # record every 100 episodes
     )
 
     env = RecordEpisodeStatistics(env, buffer_length = 15000)
