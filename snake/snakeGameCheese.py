@@ -2,7 +2,7 @@
 import pygame
 import numpy as np
 import random
-from fruit import Fruit, DecayFruit
+from fruit import Fruit, DecayFruit, EnemyFruit
 
 # for debug to see death 
 import time
@@ -65,10 +65,12 @@ class snakeGameCheese():
         self.fruits = []
         if fruit_positions is not None:
             self.fruits.append(Fruit(fruit_positions[0]))
-            # self.fruits.append(DecayFruit(fruit_positions[1])) # DECAYFRUIT
+            self.fruits.append(DecayFruit(fruit_positions[1])) # DECAYFRUIT
+            self.fruits.append(EnemyFruit(fruit_positions[2])) # ENEMYFRUIT
         else:
             self.fruits.append(Fruit(np.array([0,0])))
-            # self.fruits.append(DecayFruit(np.array([0,0]))) # DECAYFRUIT
+            self.fruits.append(DecayFruit(np.array([0,0]))) # DECAYFRUIT
+            self.fruits.append(EnemyFruit(np.array([0,0]))) # ENEMYFRUIT
             # respawn each at random positions
             for i in range(len(self.fruits)):
                 self.spawn_fruit(i)
@@ -87,14 +89,22 @@ class snakeGameCheese():
             x = random.randrange(0, self.grid_size[0])
             y = random.randrange(0, self.grid_size[1])
             candidate = np.array([x, y], dtype=np.int32)
-    
+            border_check = True
+
+            # Checking if the square path will fit inside the screen or not
+            if fruit_class == EnemyFruit:
+                length_check = candidate[0] + self.fruits[index].path_length < self.grid_size[0]
+                height_check = candidate[1] + self.fruits[index].path_length < self.grid_size[1]
+                if not length_check or not height_check:
+                    border_check = False
+
             # check collisions
             collision = any((seg[0] == x and seg[1] == y) for seg in self.snake_body)
             fruit_collision = any(
                 (f.position[0] == x and f.position[1] == y) for i,f in enumerate(self.fruits) if i != index
             )
     
-            if not collision and not fruit_collision:
+            if not collision and not fruit_collision and border_check:
                 # respawn the fruit at this index
                 if fruit_class == DecayFruit:
                     self.fruits[index] = DecayFruit(candidate)
@@ -164,6 +174,22 @@ class snakeGameCheese():
                         print(f'****************EAT FRUIT: {fruit.color.upper()}, {fruit.value}*****************', file=f)
                 # respawn this fruit at same index
                 self.spawn_fruit(i)
+
+            for snake_part in self.snake_body:
+                if type(fruit) == EnemyFruit and snake_part[2] == 1 and np.array_equal(fruit.position, snake_part[:-1]):
+                    self.score += fruit.on_eat()
+
+                    # shrink tail for two turns each fruit
+                    self.grow_tail += fruit.value * 2
+
+                    if self.DEBUG:
+                        with open(self.log, "a") as f:
+                            print(f'****************EAT FRUIT: {fruit.color.upper()}, {fruit.value}*****************', file=f)
+                    
+                    # respawn this fruit at same index
+                    self.spawn_fruit(i)
+
+
 
         # if not eaten, update fruit values
         for i, fruit in enumerate(self.fruits):
