@@ -34,3 +34,44 @@ class DecayFruit(Fruit):
 
         if self.value <= 0:
             self.active = False
+
+# fruit that goes in a square path and has a penalty of 1 if eaten
+class EnemyFruit(Fruit):
+    def __init__(self, position, initial_value=-1, path_length = 5):
+        super().__init__(position)
+        self.value = initial_value
+        self.max_value = initial_value
+        self.color = 'purple'
+        self.path_length = path_length
+        self.cur_side = 0
+        self.count = 0
+
+    def update(self):
+        if self.cur_side == 0:
+            if self.count < self.path_length:
+                self.position[0] += 1 # moving right
+                self.count += 1
+            else:
+                self.cur_side = (self.cur_side + 1) % 4
+                self.count = 0
+        elif self.cur_side == 1:
+            if self.count < self.path_length:
+                self.position[1] += 1 # moving down
+                self.count += 1
+            else:
+                self.cur_side = (self.cur_side + 1) % 4
+                self.count = 0
+        elif self.cur_side == 2:
+            if self.count < self.path_length:
+                self.position[0] -= 1 # moving left
+                self.count += 1
+            else:
+                self.cur_side = (self.cur_side + 1) % 4
+                self.count = 0
+        else:
+            if self.count < self.path_length:
+                self.position[1] -= 1 # moving up
+                self.count += 1
+            else:
+                self.cur_side = (self.cur_side + 1) % 4
+                self.count = 0
