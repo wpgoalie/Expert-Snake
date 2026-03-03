@@ -29,6 +29,7 @@ class snakeGameCheese():
         # game state instead of quitting immediately
         self.wall_dead = False
         self.body_dead = False
+        self.fruit_dead = False
         # determine which body segment is visible
         self.active_body_key = 1
         # keeps track of how many turns to grow for
@@ -133,6 +134,16 @@ class snakeGameCheese():
         # displaying text
         self.game_screen.blit(score_surface, score_rect)
 
+    def fruit_eaten(self, idx, fruit):
+        self.score += fruit.on_eat()
+        # grow tail for two turns each fruit
+        self.grow_tail += fruit.value * 2
+        if self.DEBUG:
+            with open(self.log, "a") as f:
+                print(f'****************EAT FRUIT: {fruit.color.upper()}, {fruit.value}*****************', file=f)
+        # respawn this fruit at same index
+        self.spawn_fruit(idx, eaten=True)
+
     def step_function(self, action):
         # prevent snake turning 180 degrees
         self.direction_switch = action
@@ -171,32 +182,28 @@ class snakeGameCheese():
                 print("LEFTOVER GROWTH: ", self.grow_tail, file=f)
                 
         for i, fruit in enumerate(self.fruits):
-            if np.array_equal(fruit.position, self.snake_position):
-                self.score += fruit.on_eat()
-                # grow tail for two turns each fruit
-                self.grow_tail += fruit.value * 2
+            if isinstance(fruit, EnemyFruit):
+                for snake_part in self.snake_body:
+                    if snake_part[2] == 1 and np.array_equal(fruit.position, snake_part[:-1]):
+                        self.fruit_eaten(i, fruit)
+                        break
+            elif np.array_equal(fruit.position, self.snake_position):
+                self.fruit_eaten(i, fruit)
+
+        if self.grow_tail < 0:
+            if abs(self.grow_tail) > len(self.snake_body):
                 if self.DEBUG:
                     with open(self.log, "a") as f:
-                        print(f'****************EAT FRUIT: {fruit.color.upper()}, {fruit.value}*****************', file=f)
-                # respawn this fruit at same index
-                self.spawn_fruit(i, eaten=True)
-
-            for snake_part in self.snake_body:
-                if type(fruit) == EnemyFruit and snake_part[2] == 1 and np.array_equal(fruit.position, snake_part[:-1]):
-                    self.score += fruit.on_eat()
-
-                    # shrink tail for two turns each fruit
-                    self.grow_tail += fruit.value * 2
-
-                    if self.DEBUG:
-                        with open(self.log, "a") as f:
-                            print(f'****************EAT FRUIT: {fruit.color.upper()}, {fruit.value}*****************', file=f)
-                    
-                    # respawn this fruit at same index
-                    self.spawn_fruit(i)
-
-
-
+                        print("FRUIT DEATH, DEDUCTION LONGER THAN CURRENT BODY", file=f)
+                    if self.DRAW: 
+                        time.sleep(3)
+                self.fruit_dead = True
+                return
+            else:
+                # negative means we have to remove part of the snake off
+                self.snake_body = self.snake_body[:self.grow_tail]
+                self.grow_tail = 0
+            
         # if not eaten, update fruit values
         for i, fruit in enumerate(self.fruits):
             fruit.update()
@@ -292,7 +299,7 @@ class snakeGameCheese():
             self.step_function(self.direction_switch)
 
             # stop running game
-            if self.wall_dead or self.body_dead:
+            if self.wall_dead or self.body_dead or self.fruit_dead:
                 break
         
 
