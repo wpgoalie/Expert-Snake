@@ -6,7 +6,7 @@ import glob
 # import gymnasium as gym
 from rlEnvironment import snakeRLEnvironment
 from stable_baselines3 import PPO
-from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.common.callbacks import CallbackList, CheckpointCallback, BaseCallback
 from gymnasium.wrappers import RecordEpisodeStatistics, RecordVideo
 
 from version_index import VERSION_INDEX
@@ -14,6 +14,20 @@ from version_index import VERSION_INDEX
 CHECKPOINT_DIR = "./data/model_checkpoints" # checkpoints saved into data so that cancelled jobs can be continued
 MODEL_NAME = f"ppo_snake_{VERSION_INDEX}"
 FINAL_MODEL = f"{MODEL_NAME}.zip" # final model saved to snake/
+
+
+class FruitLoggingCallback(BaseCallback):
+    def __init__(self, verbose=1):
+        super().__init__(verbose)
+    def _on_step(self) -> bool:
+        return True
+    def _on_rollout_end(self) -> None:
+        # called at the end of each rollout
+        for env_idx in range(len(self.training_env.envs)):
+            env = self.training_env.envs[env_idx].unwrapped
+            fruit_counts = env.fruit_stats()
+            print(f"FruitCounts | {fruit_counts} |")
+
 
 def environment_function():
     return snakeRLEnvironment()
@@ -54,9 +68,11 @@ def main():
         save_path=CHECKPOINT_DIR,
         name_prefix=MODEL_NAME
     )
+    fruit_callback = FruitLoggingCallback()
+    callback_list = CallbackList([checkpoint_callback, fruit_callback])
     
     # model = PPO("MultiInputPolicy", env, verbose=1)
-    model.learn(total_timesteps=2_500_000, callback=checkpoint_callback, reset_num_timesteps=False)
+    model.learn(total_timesteps=1_000_000, callback=callback_list, reset_num_timesteps=False)
     model.save(FINAL_MODEL)
 
     avg_reward = np.average(env.return_queue)
@@ -66,6 +82,7 @@ def main():
 
     print(f'Average Reward: {avg_reward:.2f}')
     print(f'Average Episode Length: {avg_length:.1f}')
+
 
 if __name__ == '__main__':
     main()

@@ -18,6 +18,7 @@ SAVE_CSV = f"../data/misc/eval_metrics_{VERSION_INDEX}.csv"
 SUMMARY_CSV = f"../data/misc/summary_eval_metrics_{VERSION_INDEX}.csv"
 RECORD_VIDEO = True
 
+
 env = snakeRLEnvironment(render_mode="rgb_array")
 env = RecordEpisodeStatistics(env, buffer_length=NUM_EPISODES)
 
@@ -37,6 +38,7 @@ model = PPO.load(MODEL_PATH)
 episode_rewards = []
 episode_lengths = []
 episode_scores = []
+episode_fruit_cnts = []
 
 for ep in range(NUM_EPISODES):
     obs, info = env.reset()
@@ -53,18 +55,27 @@ for ep in range(NUM_EPISODES):
         ep_length += 1
 
     episode_scores.append(env.unwrapped.score())
+    episode_fruit_cnts.append(env.unwrapped.fruit_stats())
     episode_rewards.append(ep_reward)
     episode_lengths.append(ep_length)
 
+
 # save metrics
-metrics_df = pd.DataFrame({
+metrics_data = {
     "episode": np.arange(1, NUM_EPISODES + 1),
     "reward": episode_rewards,
     "length": episode_lengths,
     "score": episode_scores,
-})
+}
+# add fruit counts columns
+fruit_keys = list(episode_fruit_cnts[0].keys())
+for key in fruit_keys:
+    metrics_data[key] = [fc[key] for fc in episode_fruit_cnts]
+metrics_df = pd.DataFrame(metrics_data)
 metrics_df["avg_reward_per_step"] = metrics_df["reward"] / metrics_df["length"]
-summary_df = pd.DataFrame([{
+
+
+summary_data = {
     "average_reward": np.mean(episode_rewards),
     "std_reward": np.std(episode_rewards),
     "average_length": np.mean(episode_lengths),
@@ -72,7 +83,11 @@ summary_df = pd.DataFrame([{
     "std_length": np.std(episode_lengths),
     "max_reward": np.max(episode_rewards),
     "min_reward": np.min(episode_rewards),
-}])
+}
+for key in fruit_keys:
+    summary_data[f"avg_{key.lower()}"] = np.mean(metrics_df[key])
+summary_df = pd.DataFrame([summary_data])
+
 
 metrics_df.to_csv(SAVE_CSV, index=False)
 summary_df.to_csv(SUMMARY_CSV, index=False)

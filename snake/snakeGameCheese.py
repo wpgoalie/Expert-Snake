@@ -77,12 +77,18 @@ class snakeGameCheese():
             pygame.init()
             pygame.display.set_caption('Snake Game with Cheese Variation')
             self.game_screen = pygame.display.set_mode((self.size_x, self.size_y))
+
+        # keep track of each type of fruit
+        self.fruit_cnts = {type(fruit).__name__: 0 for fruit in self.fruits}
     
     def grid_to_pixel(self, pos, cell_size):
         return np.array(pos) * cell_size
 
-    def spawn_fruit(self, index):
+    def spawn_fruit(self, index, eaten=False):
+        # increase fruit count
         fruit_class = type(self.fruits[index])  # get fruit type
+        if eaten:
+            self.fruit_cnts[fruit_class.__name__] += 1
         while True:
             x = random.randrange(0, self.grid_size[0])
             y = random.randrange(0, self.grid_size[1])
@@ -163,13 +169,13 @@ class snakeGameCheese():
                     with open(self.log, "a") as f:
                         print(f'****************EAT FRUIT: {fruit.color.upper()}, {fruit.value}*****************', file=f)
                 # respawn this fruit at same index
-                self.spawn_fruit(i)
+                self.spawn_fruit(i, eaten=True)
 
         # if not eaten, update fruit values
         for i, fruit in enumerate(self.fruits):
             fruit.update()
             if not fruit.active: # disappears/no longer active
-                self.spawn_fruit(i)
+                self.spawn_fruit(i, eaten=False)
 
         if self.grow_tail > 0:
             self.grow_tail -= 1
