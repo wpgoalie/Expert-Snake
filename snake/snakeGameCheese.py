@@ -191,7 +191,7 @@ class snakeGameCheese():
                 self.fruit_eaten(i, fruit)
 
         if self.grow_tail < 0:
-            if abs(self.grow_tail) >= len(self.snake_body):
+            if len(self.snake_body) + self.grow_tail <= 1:
                 if self.DEBUG:
                     with open(self.log, "a") as f:
                         print("FRUIT DEATH, DEDUCTION LONGER THAN CURRENT BODY", file=f)
