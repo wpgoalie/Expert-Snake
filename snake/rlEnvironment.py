@@ -15,6 +15,7 @@ class snakeRLEnvironment(gym.Env):
         self.render_mode = render_mode
         self.window = None
         self.clock = None
+        self.steps_survived = 0
     
         self.game = snakeGameCheese(
             grid_size=np.array([self.length_of_grid_x, self.length_of_grid_y]),
@@ -222,25 +223,26 @@ class snakeRLEnvironment(gym.Env):
         reward = 0
 
         if self.game.score > prev_score:
-            reward += 5 * (self.game.score - prev_score) # fruit reward
+            reward += 10 * (self.game.score - prev_score) + (1 + 0.01 * self.game.score) # fruit reward that increases with more apples
         elif terminated:
-            reward -= 10  # make death clearly worse than apple
+            reward -= 15  # make death clearly worse than apple
         else:
+            self.steps_survived += 1
             # small survival reward 
             reward += 0.001
             # normalized distance shaping
             max_grid = max(self.length_of_grid_x, self.length_of_grid_y)
             for prev_d, curr_d in zip(prev_distances, current_distances):
                 distance_diff = prev_d - curr_d
-                reward += 0.2 * (distance_diff / max_grid) # comment out if uncommented DECAYFRUIT
+                reward += 0.5 * (distance_diff / max_grid) # comment out if uncommented DECAYFRUIT
                 # weighted sum of fruits based on inverse distance (closer fruits = more reward)
                 # reward += 0.2 * ((prev_d - curr_d) / max_grid) * (1 / (prev_d + 1e-5)) # DECAYFRUIT
                 # penalize moving away or staying same distance from fruit to prevent circling
                 if distance_diff <= 0:
-                    reward -= 0.05
+                    reward -= 0.02
             # stronger turn penalty to reduce zigzag
             if direction != self._prev_direction:
-                reward -= 0.05  
+                reward -= 0.02
                 
         self._prev_direction = direction
 
@@ -251,6 +253,9 @@ class snakeRLEnvironment(gym.Env):
 
     def score(self):
         return self.game.score
+
+    def fruit_stats(self):
+        return self.game.fruit_cnts.copy()
 
     def render(self):
         if self.render_mode == "rgb_array":
