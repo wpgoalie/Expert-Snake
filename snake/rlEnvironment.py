@@ -85,8 +85,8 @@ class snakeRLEnvironment(gym.Env):
         # fill in fruit list
         for i, fruit in enumerate(self.game.fruits):
             # normalize position
-            x_norm = fruit.position[0] / self.length_of_grid_x
-            y_norm = fruit.position[1] / self.length_of_grid_y
+            pos = fruit.position / self.grid_max
+            x_norm, y_norm = pos
             # normalize value
             value_norm = fruit.value / fruit.max_value
             fruits_arr[i] = [x_norm, y_norm, value_norm]
@@ -205,7 +205,7 @@ class snakeRLEnvironment(gym.Env):
         self._target_locations = [fruit.position for fruit in self.game.fruits]
 
         # Check if agent reached the target or died
-        terminated = self.game.wall_dead or self.game.body_dead # Game terminates if either snake runs into itself or a wall
+        terminated = self.game.wall_dead or self.game.body_dead or self.game.fruit_dead # Game terminates if either snake runs into itself or a wall
 
         # We don't use truncation in this simple environment
         # (could add a step limit here if desired)
@@ -223,26 +223,42 @@ class snakeRLEnvironment(gym.Env):
         reward = 0
 
         if self.game.score > prev_score:
-            reward += 10 * (self.game.score - prev_score) + (1 + 0.01 * self.game.score) # fruit reward that increases with more apples
+            reward += 10      # strong apple reward
         elif terminated:
-            reward -= 15  # make death clearly worse than apple
+            reward -= 10      # strong death penalty
         else:
-            self.steps_survived += 1
-            # small survival reward 
-            reward += 0.001
-            # normalized distance shaping
+            reward -= 0.01  # small step penalty
             max_grid = max(self.length_of_grid_x, self.length_of_grid_y)
-            for prev_d, curr_d in zip(prev_distances, current_distances):
-                distance_diff = prev_d - curr_d
-                reward += 0.5 * (distance_diff / max_grid) # comment out if uncommented DECAYFRUIT
-                # weighted sum of fruits based on inverse distance (closer fruits = more reward)
-                # reward += 0.2 * ((prev_d - curr_d) / max_grid) * (1 / (prev_d + 1e-5)) # DECAYFRUIT
-                # penalize moving away or staying same distance from fruit to prevent circling
-                if distance_diff <= 0:
-                    reward -= 0.02
-            # stronger turn penalty to reduce zigzag
-            if direction != self._prev_direction:
-                reward -= 0.02
+            closest_idx = np.argmin(prev_distances)
+            
+            prev_d = prev_distances[closest_idx]
+            curr_d = current_distances[closest_idx]
+            distance_diff = prev_d - curr_d
+        
+            reward += 0.5 * (distance_diff / max_grid)
+        
+        # reward = 0
+        # if self.game.score > prev_score:
+        #     reward += 10 * (self.game.score - prev_score) + (1 + 0.01 * self.game.score) # fruit reward that increases with more apples
+        # elif terminated:
+        #     reward -= 15  # make death clearly worse than apple
+        # else:
+        #     self.steps_survived += 1
+        #     # small survival reward 
+        #     reward += 0.001
+        #     # normalized distance shaping
+        #     max_grid = max(self.length_of_grid_x, self.length_of_grid_y)
+        #     for prev_d, curr_d in zip(prev_distances, current_distances):
+        #         distance_diff = prev_d - curr_d
+        #         reward += 0.5 * (distance_diff / max_grid) # comment out if uncommented DECAYFRUIT
+        #         # weighted sum of fruits based on inverse distance (closer fruits = more reward)
+        #         # reward += 0.2 * ((prev_d - curr_d) / max_grid) * (1 / (prev_d + 1e-5)) # DECAYFRUIT
+        #         # penalize moving away or staying same distance from fruit to prevent circling
+        #         if distance_diff <= 0:
+        #             reward -= 0.02
+        #     # stronger turn penalty to reduce zigzag
+        #     if direction != self._prev_direction:
+        #         reward -= 0.02
                 
         self._prev_direction = direction
 
@@ -269,6 +285,12 @@ class snakeRLEnvironment(gym.Env):
             self.window = pygame.display.set_mode((self.game.size_x, self.game.size_y))
 
         self.window.fill('green')
+
+        if len(self.game.snake_body) == 0:
+            # do not render if snake has no body left
+            pygame.display.update()
+            return np.transpose(np.array(pygame.surfarray.pixels3d(self.window)), axes=(1, 0, 2))
+            
         # draw head
         head = self.game.snake_body[0]
         head_pixel = self.game.grid_to_pixel(head[:2], self.game.cell_size)
