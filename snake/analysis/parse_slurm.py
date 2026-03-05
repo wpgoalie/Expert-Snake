@@ -13,6 +13,7 @@ rows = []
 current = {}
 
 line_pattern = re.compile(r"\|\s+([^|]+?)\s+\|\s+([^|]+?)\s+\|")
+fruit_pattern = re.compile(r"\{([^}]*)\}")
 
 with open(LOG_FILE, "r") as f:
     for line in f:
@@ -21,19 +22,30 @@ with open(LOG_FILE, "r") as f:
             key = match.group(1).strip()
             value = match.group(2).strip()
 
-            # Try numeric conversion
             try:
                 value = float(value) if "." in value else int(value)
             except ValueError:
                 pass
 
             current[key] = value
+            
+        if "FruitCounts" in line:
+            fruit_match = fruit_pattern.search(line)
+            if fruit_match:
+                fruit_items = fruit_match.group(1).split(",")
 
-        # Separator = end of block
+                for item in fruit_items:
+                    name, val = item.split(":")
+                    name = name.strip().strip("'").lower()
+                    val = int(val.strip())
+
+                    current[f"avg_{name}"] = val
+
         if line.startswith("-") and current:
             if "iterations" in current:
+                print(current)
                 rows.append(current)
-            current = {}
+                current = {}
 
 df = pd.DataFrame(rows)
 
