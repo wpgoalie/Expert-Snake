@@ -4,6 +4,7 @@ from typing import Optional
 import numpy as np
 import pygame
 import math
+from fruit import Fruit, EnemyFruit
 
 class snakeRLEnvironment(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
@@ -107,11 +108,18 @@ class snakeRLEnvironment(gym.Env):
     def _get_dangers(self):
         # should detect if next move results in collision with itself or a wall, returns dictionary of where dangers are based on direction
         head_x, head_y = self.game.snake_position
+        enemy_x, enemy_y = self.game.fruits[2].position[0], self.game.fruits[2].position[1]
 
         potential_positions = {"UP": (head_x, head_y - 1), 
                                "DOWN": (head_x, head_y + 1), 
                                "LEFT": (head_x - 1, head_y), 
                                "RIGHT": (head_x + 1, head_y),}
+
+        potential_positions_enemy = {"UP": (enemy_x, enemy_y - 1), 
+                               "DOWN": (enemy_x, enemy_y + 1), 
+                               "LEFT": (enemy_x - 1, enemy_y), 
+                               "RIGHT": (enemy_x + 1, enemy_y),}
+        
         dangers = {}
 
         for direction, (nx, ny) in potential_positions.items():
@@ -119,14 +127,25 @@ class snakeRLEnvironment(gym.Env):
             # boundary/wall check
             if nx < 0 or nx >= self.length_of_grid_x  or ny < 0 or ny >= self.length_of_grid_y:
                 danger = 1
+            
             # body collision check
             for segment in self.game.snake_body[1:]:
                 if segment[2] == self.game.active_body_key:
                     if nx == segment[0] and ny == segment[1]:
                         danger = 1
                         break
-                        
+            
             dangers[direction] = danger
+
+        for direction, (nx, ny) in potential_positions_enemy.items():
+            danger = 0
+
+            # enemy fruit check
+            for segment in self.game.snake_body:
+                if segment[2] == self.game.active_body_key:
+                    if  nx == segment[0] and ny == segment[1]:
+                        danger = 1
+                        break
 
         return dangers
         
@@ -223,19 +242,30 @@ class snakeRLEnvironment(gym.Env):
         reward = 0
 
         if self.game.score > prev_score:
-            reward += 10      # strong apple reward
-        elif terminated:
-            reward -= 10      # strong death penalty
+            reward += 7 * (self.game.score - prev_score) # fruit reward
+        elif self.game.wall_dead:
+            reward -= 15
+        elif self.game.body_dead:
+            reward -= 8
+        elif self.game.fruit_dead:
+            reward -= 5
         else:
             reward -= 0.01  # small step penalty
             max_grid = max(self.length_of_grid_x, self.length_of_grid_y)
-            closest_idx = np.argmin(prev_distances)
+            closest_idx = np.argmin(prev_distances)      
             
             prev_d = prev_distances[closest_idx]
             curr_d = current_distances[closest_idx]
             distance_diff = prev_d - curr_d
-        
-            reward += 0.5 * (distance_diff / max_grid)
+
+            
+            if isinstance(self.game.fruits[closest_idx], EnemyFruit):
+                reward -= 0.4 * (distance_diff / max_grid)
+            else:
+                reward += 0.7 * (distance_diff / max_grid)
+
+            if direction != self._prev_direction:
+                reward -= 0.01 # 0.02, making penalty less, but still negative
         
         # reward = 0
         # if self.game.score > prev_score:
