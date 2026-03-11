@@ -4,7 +4,7 @@ from typing import Optional
 import numpy as np
 import pygame
 import math
-from fruit import Fruit, EnemyFruit
+from fruit import Fruit, EnemyFruit, DecayFruit
 
 class snakeRLEnvironment(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 4}
@@ -51,6 +51,12 @@ class snakeRLEnvironment(gym.Env):
                     shape=(4,),
                     dtype=np.float32
                 ),
+                "enemy_danger":gym.spaces.Box(
+                    low = 0,
+                    high = 1,
+                    shape=(4,),
+                    dtype=np.float32
+                ),
             }
         )
         # for normalization in _get_obs(self)
@@ -73,12 +79,20 @@ class snakeRLEnvironment(gym.Env):
         Returns:
             dict: Observation with agent and target positions
         """
-        dangers = self._get_dangers()
+        all_dangers = self._get_dangers()
+        dangers = all_dangers[0]
         danger_arr = np.array([
             dangers["UP"],
             dangers["DOWN"],
             dangers["LEFT"],
             dangers["RIGHT"]
+        ], dtype=np.float32)
+        enemy_dangers = all_dangers[1]
+        enemy_danger_arr = np.array([
+            enemy_dangers["UP"],
+            enemy_dangers["DOWN"],
+            enemy_dangers["LEFT"],
+            enemy_dangers["RIGHT"]
         ], dtype=np.float32)
 
         # initialize structure [x,y,value] for each fruit
@@ -94,7 +108,7 @@ class snakeRLEnvironment(gym.Env):
 
         agent_norm = self._agent_location / self.grid_max
         
-        return {"agent": agent_norm, "fruits": fruits_arr, "danger": danger_arr}
+        return {"agent": agent_norm, "fruits": fruits_arr, "danger": danger_arr, "enemy_danger": enemy_danger_arr}
 
     def _get_info(self):
         info = {}
@@ -115,12 +129,13 @@ class snakeRLEnvironment(gym.Env):
                                "LEFT": (head_x - 1, head_y), 
                                "RIGHT": (head_x + 1, head_y),}
 
-        potential_positions_enemy = {"UP": (enemy_x, enemy_y - 1), 
-                               "DOWN": (enemy_x, enemy_y + 1), 
-                               "LEFT": (enemy_x - 1, enemy_y), 
-                               "RIGHT": (enemy_x + 1, enemy_y),}
+        potential_positions_enemy = {3: (enemy_x, enemy_y - 1), 
+                               1: (enemy_x, enemy_y + 1), 
+                               2: (enemy_x - 1, enemy_y), 
+                               0: (enemy_x + 1, enemy_y),}
         
         dangers = {}
+        enemy_dangers = {}
 
         for direction, (nx, ny) in potential_positions.items():
             danger = 0
@@ -137,17 +152,38 @@ class snakeRLEnvironment(gym.Env):
             
             dangers[direction] = danger
 
-        for direction, (nx, ny) in potential_positions_enemy.items():
-            danger = 0
+        danger = 0
+        current_enemy_direction = self.game.fruits[2].cur_side
+        
+        # enemy fruit check
+        for index, segment in enumerate(self.game.snake_body):
+            if segment[2] == self.game.active_body_key:
+                if  potential_positions_enemy[current_enemy_direction][0] == segment[0] and potential_positions_enemy[current_enemy_direction][1] == segment[1]:
+                    danger = 1
+                    break
 
-            # enemy fruit check
-            for segment in self.game.snake_body:
-                if segment[2] == self.game.active_body_key:
-                    if  nx == segment[0] and ny == segment[1]:
-                        danger = 1
-                        break
+        if current_enemy_direction == 0: # moving right
+            enemy_dangers["RIGHT"] = danger
+            enemy_dangers["UP"] = 0
+            enemy_dangers["DOWN"] = 0
+            enemy_dangers["LEFT"] = 0
+        elif current_enemy_direction == 1: # moving down
+            enemy_dangers["RIGHT"] = 0
+            enemy_dangers["UP"] = 0
+            enemy_dangers["DOWN"] = danger
+            enemy_dangers["LEFT"] = 0
+        elif current_enemy_direction == 2: # moving left
+            enemy_dangers["RIGHT"] = 0
+            enemy_dangers["UP"] = 0
+            enemy_dangers["DOWN"] = 0
+            enemy_dangers["LEFT"] = danger
+        else:
+            enemy_dangers["RIGHT"] = 0
+            enemy_dangers["UP"] = danger
+            enemy_dangers["DOWN"] = 0
+            enemy_dangers["LEFT"] = 0
 
-        return dangers
+        return dangers, enemy_dangers
         
     def reset(self, seed: Optional[int] = None, options: Optional[dict] = None):
         """Start a new episode.
@@ -242,30 +278,55 @@ class snakeRLEnvironment(gym.Env):
         reward = 0
 
         if self.game.score > prev_score:
-            reward += 7 * (self.game.score - prev_score) # fruit reward
+            # strong fruit reward that grows slightly with score
+            reward += 20 * (self.game.score - prev_score) # + (1 + 0.01 * self.game.score)
+        elif self.game.score < prev_score:
+            reward -= 15 # new
         elif self.game.wall_dead:
             reward -= 15
         elif self.game.body_dead:
             reward -= 8
         elif self.game.fruit_dead:
             reward -= 5
+
+        
         else:
-            reward -= 0.01  # small step penalty
-            max_grid = max(self.length_of_grid_x, self.length_of_grid_y)
-            closest_idx = np.argmin(prev_distances)      
-            
+            self.steps_survived += 1
+        
+            # small survival pressure (prevents infinite loops)
+            reward -= 0.01
+        
+            max_grid = np.sqrt(self.length_of_grid_x**2 + self.length_of_grid_y**2) #max(self.length_of_grid_x, self.length_of_grid_y)
+        
+            # focus on closest fruit to reduce noise
+            closest_idx = np.argmin(prev_distances)
+        
             prev_d = prev_distances[closest_idx]
             curr_d = current_distances[closest_idx]
+        
             distance_diff = prev_d - curr_d
+        
+            # normalize
+            shaped = 0.5 * (distance_diff / max_grid)
 
-            
-            if isinstance(self.game.fruits[closest_idx], EnemyFruit):
-                reward -= 0.4 * (distance_diff / max_grid)
+            fruit = self.game.fruits[closest_idx]
+            # enemy fruits should be avoided
+            if isinstance(fruit, EnemyFruit):
+                reward -= shaped * 2
+            elif (isinstance(fruit, DecayFruit)):
+                value_ratio = fruit.value / fruit.max_value # current value div by max value
+                reward += shaped * (1 + value_ratio * 2)
             else:
-                reward += 0.7 * (distance_diff / max_grid)
-
+                reward += shaped
+        
+            # discourage moving away from fruit
+            if distance_diff <= 0:
+                reward -= 0.05
+        
+            # reduce zig-zagging
             if direction != self._prev_direction:
-                reward -= 0.01 # 0.02, making penalty less, but still negative
+                reward -= 0.003
+
         
         # reward = 0
         # if self.game.score > prev_score:

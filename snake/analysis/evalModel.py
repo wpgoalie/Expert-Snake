@@ -13,8 +13,8 @@ from rlEnvironment import snakeRLEnvironment
 MODEL_PATH = f"../data/models/ppo_snake_{VERSION_INDEX}.zip"
 NUM_EPISODES = 50
 VIDEO_FOLDER = "../data/videos/"
-SAVE_CSV = f"../data/metrics/eval_metrics_{VERSION_INDEX}.csv"
-SUMMARY_CSV = f"../data/metrics/summary_eval_metrics_{VERSION_INDEX}.csv"
+SAVE_CSV = f"../data/misc/eval_metrics_{VERSION_INDEX}.csv"
+SUMMARY_CSV = f"../data/misc/summary_eval_metrics_{VERSION_INDEX}.csv"
 RECORD_VIDEO = True
 
 
