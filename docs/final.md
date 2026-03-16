@@ -13,13 +13,13 @@ This project consists of two phases:
 
 In this phase, there was only one fruit, the regular fruit, which increases the score by 1 when eaten. In this phase, the snake agent only had observations to the snake head's position and the fruits position. We later added another observation, which consisted of letting the snake agent know which next moves resulted in danger or not. The main goals of this phase were to try to maximize fruit score and to inspect and eliminate undesirable behavior so that these issues don't persist in phase 2.
 
-<img height="300" alt="phase_1_visual" src="./docs/images/phase_1_visual.jpg"/>
+![Phase 1 Visual](/images/phase_1_visual.jpg)
 
 ### Phase 2: Three Fruit Types
 
 In this phase, two additional fruit were added: the enemy fruit and the decay fruit. The enemy fruit followed a set square path and would decrease the score by 1 whenever either the snake ate this fruit or the fruit itself ran into the snake's body. The Decay fruit started with an initial score increase reward of 5 when eaten, but this reward decreases by 1 every 5 steps in the training process, where this fruit respawns at a new location when it hits a score increase reward of 0. On top of the observation space of phase 1, we added an enemy fruit danger observation, which tells the snake agent if the next move of the enemy fruit results in a collision with the snake itself. Also, instead of just observing the location of one fruit, there are now three fruit locations in the observation space. The main goals of this phase were to maximize the fruit score by eating both regular fruit and decay fruit efficiently while also avoiding enemy fruit.
 
-<img height="300" alt="phase_2_visual" src="./docs/images/phase_2_visual.jpg"/>
+![Phase 2 Visual](/images/phase_2_visual.jpg)
 
 ## Approach
 
