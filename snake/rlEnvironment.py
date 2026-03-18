@@ -37,7 +37,6 @@ class snakeRLEnvironment(gym.Env):
                 "agent": gym.spaces.Box(
                     low=np.array([0, 0]),
                     high=np.array([1, 1]),
-                    # high=np.array([self.length_of_grid_x - 1, self.length_of_grid_y - 1]),
                     dtype=np.float32
                 ),
                 "fruits": gym.spaces.Box(
@@ -205,15 +204,6 @@ class snakeRLEnvironment(gym.Env):
                     self.np_random.integers(0, self.length_of_grid_x),
                     self.np_random.integers(0, self.length_of_grid_y),
                 ], dtype=np.int32)
-                # game already takes care of this part
-                # # Randomly place target in a different location than agent
-                # while True:
-                #     self._target_location = np.array([
-                #         self.np_random.integers(0, self.length_of_grid_x),
-                #         self.np_random.integers(0, self.length_of_grid_y),
-                #     ], dtype=np.int32)
-                #     if not np.array_equal(self._target_location, self._agent_location):
-                #         break
                 self.game = snakeGameCheese(
                     grid_size=np.array([self.length_of_grid_x, self.length_of_grid_y]),
                     snake_position=self._agent_location,
@@ -243,13 +233,6 @@ class snakeRLEnvironment(gym.Env):
         # Map the discrete action (0-2) to a movement direction
         direction = self._action_to_direction[action]
         prev_score = self.game.score
-        # prev_distance = 0
-        # try:
-        #     x_calc = float(self.game.fruit_position[0]) - float(self.game.snake_position[0])
-        #     y_calc = float(self.game.fruit_position[1]) - float(self.game.snake_position[1])
-        #     prev_distance = math.sqrt((x_calc) ** 2 + (y_calc) ** 2) # Euclidean Distance
-        # except ValueError:
-        #     prev_distance = 0
 
         prev_distances = [np.linalg.norm(self._agent_location - fruit.position) for fruit in self.game.fruits]
         
@@ -265,21 +248,13 @@ class snakeRLEnvironment(gym.Env):
         # We don't use truncation in this simple environment
         # (could add a step limit here if desired)
         truncated = False
-
-        # current_distance = 0
-        # try:
-        #     x_calc = float(self.game.fruit_position[0]) - float(self.game.snake_position[0])
-        #     y_calc = float(self.game.fruit_position[1]) - float(self.game.snake_position[1])
-        #     current_distance = math.sqrt((x_calc) ** 2 + (y_calc) ** 2) # Euclidean Distance
-        # except ValueError:
-        #     current_distance = 0
         current_distances = [np.linalg.norm(self._agent_location - fruit.position) for fruit in self.game.fruits]
 
         reward = 0
 
         if self.game.score > prev_score:
             # strong fruit reward that grows slightly with score
-            reward += 20 * (self.game.score - prev_score) # + (1 + 0.01 * self.game.score)
+            reward += 20 * (self.game.score - prev_score) 
         elif self.game.score < prev_score:
             reward -= 15 # new
         elif self.game.wall_dead:
@@ -296,7 +271,7 @@ class snakeRLEnvironment(gym.Env):
             # small survival pressure (prevents infinite loops)
             reward -= 0.01
         
-            max_grid = np.sqrt(self.length_of_grid_x**2 + self.length_of_grid_y**2) #max(self.length_of_grid_x, self.length_of_grid_y)
+            max_grid = np.sqrt(self.length_of_grid_x**2 + self.length_of_grid_y**2)
         
             # focus on closest fruit to reduce noise
             closest_idx = np.argmin(prev_distances)
@@ -326,30 +301,6 @@ class snakeRLEnvironment(gym.Env):
             # reduce zig-zagging
             if direction != self._prev_direction:
                 reward -= 0.003
-
-        
-        # reward = 0
-        # if self.game.score > prev_score:
-        #     reward += 10 * (self.game.score - prev_score) + (1 + 0.01 * self.game.score) # fruit reward that increases with more apples
-        # elif terminated:
-        #     reward -= 15  # make death clearly worse than apple
-        # else:
-        #     self.steps_survived += 1
-        #     # small survival reward 
-        #     reward += 0.001
-        #     # normalized distance shaping
-        #     max_grid = max(self.length_of_grid_x, self.length_of_grid_y)
-        #     for prev_d, curr_d in zip(prev_distances, current_distances):
-        #         distance_diff = prev_d - curr_d
-        #         reward += 0.5 * (distance_diff / max_grid) # comment out if uncommented DECAYFRUIT
-        #         # weighted sum of fruits based on inverse distance (closer fruits = more reward)
-        #         # reward += 0.2 * ((prev_d - curr_d) / max_grid) * (1 / (prev_d + 1e-5)) # DECAYFRUIT
-        #         # penalize moving away or staying same distance from fruit to prevent circling
-        #         if distance_diff <= 0:
-        #             reward -= 0.02
-        #     # stronger turn penalty to reduce zigzag
-        #     if direction != self._prev_direction:
-        #         reward -= 0.02
                 
         self._prev_direction = direction
 
