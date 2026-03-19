@@ -19,9 +19,9 @@ In this phase, we kept the basic cheese variation setup, as described above. The
 
 In this phase, two additional fruits were added: the decay fruit and the enemy fruit. The decay fruit (yellow) starts with an initial score of 5 and decreases by 1 every 5 steps, respawning at a new location when it hits 0. The enemy fruit is depicted as purple and follows a set square path. When it collides with the snake head or body, it decreases the score by 1 and also subtracts the tail body segment, meaning that the snake can also die if it eats too many enemy fruits.
 
-Altogether, these features create a dynamic environment where the agent must plan ahead, balance immediate and future rewards, and adapt to changing conditions. A non-RL approach, such as a fixed algorithm, would struggle to handle the many complex, case-by-case situations that can arise. Even in the classic cheese variation, fully exploiting the gaps in the snake’s body is challenging, as the snake has increased freedom to move through itself in order to avoid death or efficiently collect fruit. With the addition of decaying and enemy fruit, the agent must also strategically choose which fruit to pursue based on location and timing. Machine learning algorithms are well suited to this type of dynamic environment, as they allow the agent to learn strategies from experience and make decisions that balance both short-term rewards and long-term outcomes. Through this project, we aim to discover what an optimal strategy looks like for our environment and understand how our RL agent can effectively navigate the snake’s gaps, weigh trade-offs to prioritize fruit, and adapt to a constantly changing game state in order to maximize its score.
-
 <img class="center" height="300" alt="phase_2_visual" src="images/phase_2_visual.jpg" />
+
+Altogether, these features create a dynamic environment where the agent must plan ahead, balance immediate and future rewards, and adapt to changing conditions. A non-RL approach, such as a fixed algorithm, would struggle to handle the many complex, case-by-case situations that can arise. Even in the classic cheese variation, fully exploiting the gaps in the snake’s body is challenging, as the snake has increased freedom to move through itself in order to avoid death or efficiently collect fruit. With the addition of decaying and enemy fruit, the agent must also strategically choose which fruit to pursue based on location and timing. Machine learning algorithms are well suited to this type of dynamic environment, as they allow the agent to learn strategies from experience and make decisions that balance both short-term rewards and long-term outcomes. Through this project, we aim to discover what an optimal strategy looks like for our environment and understand how our RL agent can effectively navigate the snake’s gaps, weigh trade-offs to prioritize fruit, and adapt to a constantly changing game state in order to maximize its score.
 
 ### DQN
 
@@ -74,7 +74,7 @@ For our phase 1 reward system, we started with an extremely simple reward system
 
 <figure class="center">
 <video width="320" height="240" controls>
-  <source src="./images/eval-episode-64.mp4" type="video/mp4">
+  <source src="./images/phase1_init.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
     <figcaption>Example of a snake rushing towards the wall instead of the fruit in order to end the run.</figcaption>
@@ -98,7 +98,7 @@ In the end, our final phase 1 reward system was:
 
 <figure class="center">
 <video width="320" height="240" controls>
-  <source src="./images/eval-episode-64.mp4" type="video/mp4">
+  <source src="./images/phase1_52apples.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
     <figcaption>Example of a run with the final reward system for phase 1.</figcaption>
@@ -218,7 +218,7 @@ After retrieving the results of our 1 million timestep training process, we noti
 
 For our training process, we evalauted its quantitative metrics through parsing the slurm file, and generated graphs:
 
-<img class="center" height="300" alt="phase_2_visual" src="images/training_summary_phase1.png" />
+<img class="center" height="300" alt="phase_1_visual" src="images/training_summary_phase1.png" />
 
 Looking at the plot, we can observe that as training progresses, there is steady improvement in both the mean episode reward and mean episode length, with some fluctuations. This indicates that our agent was steadily improving and learning behaviors that allowed it to survive longer while collecting more apples. The improvement in performance appears to plateau slightly over time, which suggests that the agent is approaching convergence and is no longer discovering significantly better strategies.
 
@@ -226,7 +226,7 @@ As mentioned in our Approach section, a lot of the undesirable behavior we had b
 
 <figure class="center">
 <video width="320" height="240" controls>
-  <source src="./images/phase1_55.mp4" type="video/mp4">
+  <source src="./images/phase1_55apples.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
     <figcaption>Example with the final phase 1 reward system.</figcaption>
