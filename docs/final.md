@@ -13,7 +13,7 @@ This project consists of two phases:
 
 In this phase, we kept the basic cheese variation setup, as described above. The main goals of this phase were to try to maximize fruit score and to eliminate highly undesirable behavior early on so that these issues don't persist in phase 2, when our setup becomes much more complicated.
 
-![Phase 1 Visual](/images/phase_1_visual.jpg)
+<img height="300" alt="phase_1_visual" src="images/phase_1_visual.jpg" />
 
 ### Phase 2: Additional Special Fruit
 
@@ -21,7 +21,7 @@ In this phase, two additional fruits were added: the decay fruit and the enemy f
 
 Altogether, these features create a dynamic environment where the agent must plan ahead, balance immediate and future rewards, and adapt to changing conditions. A non-RL approach, such as a fixed algorithm, would struggle to handle the many complex, case-by-case situations that can arise. Even in the classic cheese variation, fully exploiting the gaps in the snake’s body is challenging, as the snake has increased freedom to move through itself in order to avoid death or efficiently collect fruit. With the addition of decaying and enemy fruit, the agent must also strategically choose which fruit to pursue based on location and timing. Machine learning algorithms are well suited to this type of dynamic environment, as they allow the agent to learn strategies from experience and make decisions that balance both short-term rewards and long-term outcomes. Through this project, we aim to discover what an optimal strategy looks like for our environment and understand how our RL agent can effectively navigate the snake’s gaps, weigh trade-offs to prioritize fruit, and adapt to a constantly changing game state in order to maximize its score.
 
-![Phase 2 Visual](/images/phase_2_visual.jpg)
+<img height="300" alt="phase_2_visual" src="images/phase_2_visual.jpg" />
 
 ### DQN
 
@@ -41,7 +41,7 @@ $$
 L\frac{\theta}{\theta}(s,a)=min(\rho\frac{\theta}{\theta}(a|s)A_{\overline{\theta}}(s,a), {A_{\overline{\theta}}(s,a)}+{|\epsilon A_{\overline{\theta}}(s,a)|}
 $$
 
-For the environment setup, we adapted a classic snake game pygame provided by [github](https://www.geeksforgeeks.org/python/snake-game-in-python-using-pygame-module/) into the cheese variation and added configurable parameters such as board size and optional rendering and debug modes. We then linked this pygame with a Gymnasium environment. In phase 2, we made further adjustments to the snake game so that it can fully support all the different types of fruit and the behavior it induces on the snake.
+For the environment setup, we adapted a classic snake game pygame provided by this [GeeksForGeeks article](https://www.geeksforgeeks.org/python/snake-game-in-python-using-pygame-module/) into the cheese variation and added configurable parameters such as board size and optional rendering and debug modes. We then linked this pygame with a Gymnasium environment. In phase 2, we made further adjustments to the snake game so that it can fully support all the different types of fruit and the behavior it induces on the snake.
 
 We decided to train on 1 million timesteps for both phases. However, at the very beginning of phase 1, we did train on 25k-50k timesteps in order to verify our setup. Additionally, we kept the default PPO parameters because PPO is very sensitive to hyperparameters and can quickly become unstable, and whenever we made adjustments to its parameters the results were always significantly worse. These hyperparameters are defined in [Stable-Baselines3 PPO documentation](https://stable-baselines3.readthedocs.io/en/master/modules/ppo.html), and are as follows:
 
@@ -136,11 +136,11 @@ $$
 S=0.5\times\frac{d_{prev} - d_{curr}}{\sqrt{L^2_x+L^2_y}}
 $$
 
-where  $d_{prev}$ and $d_{curr}$ are the distances between the snake head and the target fruit before and after it takes a step, and $L_x$ and $L_y$ are the board dimensions. Shaping adjustments were also applied based on each type of fruit so that the snake has the full context on which fruit would be the most helpful in score maximization.
+where  $$d_{prev}$$ and $$d_{curr}$$ are the distances between the snake head and the target fruit before and after it takes a step, and $$L_x$$ and $$L_y$$ are the board dimensions. Shaping adjustments were also applied based on each type of fruit so that the snake has the full context on which fruit would be the most helpful in score maximization.
 
 Our final phase 2 reward system was:
-- **+20** * $\times \Delta \text{score}$ on score increase
-- **−15** * $\times \Delta \text{score}$ on score decrease
+- **+20** * $$\Delta\, \text{score}$$ on score increase
+- **−15** * $$\Delta\, \text{score}$$ on score decrease
 - **-12** if the game terminated (snake agent ran into a wall, itself, or died to an enemy fruit)
 - **-0.01** for surviving
 - **-0.003** for changing directions
@@ -148,7 +148,7 @@ Our final phase 2 reward system was:
 - **+0.5** * (normalized distance change to closest fruit) for feedback on snake progress towards fruits
 - **+S** move toward regular fruit
 - **-2S** move toward enemy fruit to heavily discourage it
-- **+(1 + 2 * value_ratio) * S** for eating decay fruit. `value_ratio` is $\text{value\_ratio} = \frac{\text{current value of the fruit}}{\text{maximum value of the fruit}}$, to let the snake know the sooner it collects decay, the better.
+- **+(1 + 2 * value_ratio) * S** for eating decay fruit. `value_ratio` is equal to $$\frac{\text{current value of the fruit}}{\text{maximum value of the fruit}}$$, to let the snake know the sooner it collects decay, the better.
 
 <figure>
 <video width="320" height="240" controls>
@@ -171,7 +171,7 @@ After simplifying down our reward system however, it did not do much better. The
 After some more exploration, our latest reward system was as follows:
 
 - **-0.05** for surviving
-- **+30** * $\times \Delta \text{score}$ regardless of increase/decrease
+- **+30** * $$\Delta\, \text{score}$$ regardless of increase/decrease
 - **-25** if the game terminated (snake agent ran into a wall, itself, or died to an enemy fruit)
 
 Originally, we also tried adding more feedback such as including distance reward back in, but that made performance worse and much more erratic than this simple system.
