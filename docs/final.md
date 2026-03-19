@@ -180,7 +180,7 @@ After simplifying down our reward system however, it did not do much better. The
   <source src="./images/approach_dqn.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
-    <figcaption>Example of a with the final DQN reward system.</figcaption>
+    <figcaption>Example with the final DQN reward system.</figcaption>
     <br>
 </figure>
 
@@ -229,7 +229,7 @@ As mentioned in our Approach section, a lot of the undesirable behavior we had b
   <source src="./images/phase1_55.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
-    <figcaption>Example of a with the final DQN reward system.</figcaption>
+    <figcaption>Example with the final phase 1 reward system.</figcaption>
     <br>
 </figure>
 
@@ -284,7 +284,7 @@ Here is one of our best runs below, where it reinforces a lot of the fruit-seeki
   <source src="./images/phase2_45.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
-    <figcaption>Example of a with the final DQN reward system.</figcaption>
+    <figcaption>Example with the final phase 2 reward system.</figcaption>
     <br>
 </figure>
 
@@ -325,7 +325,7 @@ Here is one of the better runs with DQN:
   <source src="./images/eval_dqn.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
-    <figcaption>Example of a with the final DQN reward system.</figcaption>
+    <figcaption>Example with the final DQN reward system.</figcaption>
     <br>
 </figure>
 
