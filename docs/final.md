@@ -13,7 +13,7 @@ This project consists of two phases:
 
 In this phase, we kept the basic cheese variation setup, as described above. The main goals of this phase were to try to maximize fruit score and to eliminate highly undesirable behavior early on so that these issues don't persist in phase 2, when our setup becomes much more complicated.
 
-![Phase 1 Visual](/images/phase_1_visual.jpg)
+<img height="300" alt="phase_1_visual" src="https://github.com/user-attachments/assets/42e48291-41b4-41db-b33c-8eec385545bb" />
 
 ### Phase 2: Additional Special Fruit
 
@@ -21,7 +21,7 @@ In this phase, two additional fruits were added: the decay fruit and the enemy f
 
 Altogether, these features create a dynamic environment where the agent must plan ahead, balance immediate and future rewards, and adapt to changing conditions. A non-RL approach, such as a fixed algorithm, would struggle to handle the many complex, case-by-case situations that can arise. Even in the classic cheese variation, fully exploiting the gaps in the snake’s body is challenging, as the snake has increased freedom to move through itself in order to avoid death or efficiently collect fruit. With the addition of decaying and enemy fruit, the agent must also strategically choose which fruit to pursue based on location and timing. Machine learning algorithms are well suited to this type of dynamic environment, as they allow the agent to learn strategies from experience and make decisions that balance both short-term rewards and long-term outcomes. Through this project, we aim to discover what an optimal strategy looks like for our environment and understand how our RL agent can effectively navigate the snake’s gaps, weigh trade-offs to prioritize fruit, and adapt to a constantly changing game state in order to maximize its score.
 
-![Phase 2 Visual](/images/phase_2_visual.jpg)
+<img height="300" alt="phase_2_visual" src="https://github.com/user-attachments/assets/6f110ca3-97bb-4124-ad22-25f6934fb3f9" />
 
 ### DQN
 
@@ -131,8 +131,8 @@ $$
 where  $$d_{prev}$$ and $$d_{curr}$$ are the distances between the snake head and the target fruit before and after it takes a step, and $$L_x$$ and $$L_y$$ are the board dimensions. Shaping adjustments were also applied based on each type of fruit so that the snake has the full context on which fruit would be the most helpful in score maximization.
 
 Our final phase 2 reward system was:
-- **+20** * $$\Delta \text{score}$$ on score increase
-- **−15** * $$\Delta \text{score}$$ on score decrease
+- **+20** * $$\Delta\, \text{score}$$ on score increase
+- **−15** * $$\Delta\, \text{score}$$ on score decrease
 - **-12** if the game terminated (snake agent ran into a wall, itself, or died to an enemy fruit)
 - **-0.01** for surviving
 - **-0.003** for changing directions
@@ -163,7 +163,7 @@ After simplifying down our reward system however, it did not do much better. The
 After some more exploration, our latest reward system was as follows:
 
 - **-0.05** for surviving
-- **+30** * $$\Delta \text{score}$$ regardless of increase/decrease
+- **+30** * $$\Delta\, \text{score}$$ regardless of increase/decrease
 - **-25** if the game terminated (snake agent ran into a wall, itself, or died to an enemy fruit)
 
 Originally, we also tried adding more feedback such as including distance reward back in, but that made performance worse and much more erratic than this simple system.
