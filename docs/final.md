@@ -128,11 +128,11 @@ $$
 S=0.5\times\frac{d_{prev} - d_{curr}}{\sqrt{L^2_x+L^2_y}}
 $$
 
-where  $$d_{prev}$$ and $$d_{curr}$$ are the distances between the snake head and the target fruit before and after it takes a step, and $L_x$ and $L_y$ are the board dimensions. Shaping adjustments were also applied based on each type of fruit so that the snake has the full context on which fruit would be the most helpful in score maximization.
+where  $$d_{prev}$$ and $$d_{curr}$$ are the distances between the snake head and the target fruit before and after it takes a step, and $$L_x$$ and $$L_y$$ are the board dimensions. Shaping adjustments were also applied based on each type of fruit so that the snake has the full context on which fruit would be the most helpful in score maximization.
 
 Our final phase 2 reward system was:
-- **+20** * $$\times \Delta \text{score}$$ on score increase
-- **−15** * $$\times \Delta \text{score}$$ on score decrease
+- **+20** * $$\Delta \text{score}$$ on score increase
+- **−15** * $$\Delta \text{score}$$ on score decrease
 - **-12** if the game terminated (snake agent ran into a wall, itself, or died to an enemy fruit)
 - **-0.01** for surviving
 - **-0.003** for changing directions
@@ -140,7 +140,7 @@ Our final phase 2 reward system was:
 - **+0.5** * (normalized distance change to closest fruit) for feedback on snake progress towards fruits
 - **+S** move toward regular fruit
 - **-2S** move toward enemy fruit to heavily discourage it
-- **+(1 + 2 * value_ratio) * S** for eating decay fruit. `value_ratio` is $$\text{value\_ratio} = \frac{\text{current value of the fruit}}{\text{maximum value of the fruit}}$$, to let the snake know the sooner it collects decay, the better.
+- **+(1 + 2 * value_ratio) * S** for eating decay fruit. `value_ratio` is equal to $$\frac{\text{current value of the fruit}}{\text{maximum value of the fruit}}$$, to let the snake know the sooner it collects decay, the better.
 
 <figure>
 <video width="320" height="240" controls>
@@ -163,7 +163,7 @@ After simplifying down our reward system however, it did not do much better. The
 After some more exploration, our latest reward system was as follows:
 
 - **-0.05** for surviving
-- **+30** * $\times \Delta \text{score}$ regardless of increase/decrease
+- **+30** * $$\Delta \text{score}$$ regardless of increase/decrease
 - **-25** if the game terminated (snake agent ran into a wall, itself, or died to an enemy fruit)
 
 Originally, we also tried adding more feedback such as including distance reward back in, but that made performance worse and much more erratic than this simple system.
