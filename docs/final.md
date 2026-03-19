@@ -23,6 +23,10 @@ Altogether, these features create a dynamic environment where the agent must pla
 
 ![Phase 2 Visual](/images/phase_2_visual.jpg)
 
+### DQN
+
+Towards the end of our project, since we had stable results for phases 1 and 2, we also attempted to train a Deep Q-Network (DQN) on our phase 2 environment to compare against PPO. We chose DQN because it is well-suited for discrete action spaces, and it learns a Q-value function that estimates the expected return for each action in a given state, which aligns naturally with the snake game’s setup. Our environment was the same as phase 2.
+
 ## Approach
 
 We focused on using the Proximal Policy Optimization (PPO) algorithm to train our agents in both phases of our project. We decided on using this algorithm because our action space is discrete (at each time step, we have the option of left, right, or forward), which PPO works well with. We train the PPO agent with the `MultiInputPolicy` from `Stable-Baselines3`, since its support for dictionary observation spaces is beneficial for including multiple types of information in our observation space, as will be discussed in more detail later in the report. Specifically, we use the clip version of the PPO algorithm. This was since the clip version prevents drastic updates to the policy itself, allowing the agent can improve gradually through fine-tuning how it should navigate body gaps, prioritize fruits, and avoid hazards without ignoring previously effective strategies. Clipping the probability ratio prevents the agent from making drastic jumps that abandon successful behavior in place of erratic turns, which could easily land the snake in a terminated state since one wrong turn can cause it to overconsume enemy fruit and hit the wall or itself. Policies are updated using:
@@ -146,7 +150,44 @@ Our final phase 2 reward system was:
     <figcaption>Example of a run with the final reward system for phase 2.</figcaption>
 </figure>
 
+### DQN 
+
+The initial reward system was based off our best one in phase 2. In general, the snake agent's performance was abysmal and ate no fruit at all, instead heavily favoring survival only.
+
+We suspected that DQN performed poorly in our environment because our reward system was too complex for DQN. The agent had to consider multiple factors simultaneously, such as distance to several fruit types, decaying fruit values, and enemy fruit positions. This likely made the Q-function difficult to approximate, since DQN assumes a single flat input vector and a relatively simple mapping from state to action values. Our dictionary-based observation space had to be flattened, which may have disrupted the spatial relationships and context the agent relied on to make decisions.
+
+After simplifying down our reward system however, it did not do much better. The snake movements still looked largely erratic and random despite training on 1 million timesteps. The snake was, however, able to eat fruit very occasionally, which was an improvement from before.
+
+[video]
+
+After some more exploration, our latest reward system was as follows:
+
+- **-0.05** for surviving
+- **+30** * $\times \Delta \text{score}$ regardless of increase/decrease
+- **-25** if the game terminated (snake agent ran into a wall, itself, or died to an enemy fruit)
+
+Originally, we also tried adding more feedback such as including distance reward back in, but that made performance worse and much more erratic than this simple system.
+
+We also tuned some hyperparameters as shown below:
+
+- **learning_rate**: We raised it from 1e-4 to 3e-4 so that the Q-network would update more quickly, since early runs showed very slow improvement.
+- **buffer_size**: Decreased from 1,000,000 to 200,000 so that training samples were drawn from more recent gameplay behavior.
+- **learning_starts**: Increased from 100 to 20000 in hopes of allowing the replay buffer to collect more information before updating, so that it does not have misled updates which may have caused the stagnation of its learning in earlier runs.
+- **batch_size**: Increased from 32 to 128 since we wanted more stable updates. Because the environment contains competing reward signals (fruit rewards, penalties, and distance shaping), smaller batches would have noisy gradient updates, which may have led to erratic behavior during training.
+- **target_update_interval**: Reduced from 10000 to 1000 so that Q-values would be kept closer to the current policy to prevent the Q-network from learning from outdated information, which can destabilize training.
+- **exploration_fraction**: Increased from 0.1 to 0.4 to allow the agent to explore the environment longer before converging, since it was not discovering useful behaviors early in training.
+
+All the other original hyperparameters can be referenced in the Stable-Baselines3 [documentation](https://stable-baselines3.readthedocs.io/en/master/modules/dqn.html).
+
+In conclusion and after some research, while DQN can perform reasonably well in simpler environments with discrete actions, it struggled in our Phase 2 Snake environment due to the complexity and dynamics introduced by the decaying and enemy fruits. Additionally, DQN’s reliance on epsilon-greedy exploration proved inefficient in an environment that constantly changes, as the agent could not explore effectively without either over- or under-prioritizing certain states. Overall, these limitations indicate that DQN is better suited for less dynamic or simpler versions of the Snake game, whereas more adaptive methods like PPO are more appropriate for more complex environments such as moving hazards or decaying rewards (Zhang, 2025).
+
 ## Evaluation
+
+### Phase 1
+
+### Phase 2
+
+### DQN
 
 ## Resources Used
 
@@ -160,4 +201,6 @@ Our final phase 2 reward system was:
 - [GeeksforGeeks Snake Pygame Implementation Tutorial](https://www.geeksforgeeks.org/python/snake-game-in-python-using-pygame-module/) used for setting up the base code of the classic Snake game using the Pygame library
 - [Pygame Documentation](https://www.pygame.org/docs/) used to add on additional features to the base code of the Snake game, including the "snake" variation
 - [Google Snake Game Cheese Mode Wiki Article](https://google-snake.fandom.com/wiki/Cheese_Mode) used for learning more about the "cheese" variation of the Snake game
+- [DQN Documentation](https://stable-baselines3.readthedocs.io/en/master/modules/dqn.html) to reference hyperparamteres and their effects
+- [Application and Optimization of Reinforcement Learning Based on Deep Q-Network (DQN) in Complex Environments](https://www.researchgate.net/publication/389103450_Application_and_Optimization_of_Reinforcement_Learning_Based_on_Deep_Q-Network_DQN_in_Complex_Environments) for researching why DQN had poor performance
 - [ChatGPT](https://chatgpt.com/) used for tailoring out reward system when we were stuck. We gave it details of what undesirable behavior the snake agent was exhibiting and how we were rewarding the agent currently, and asked what we did not consider. This led to adding a small survival penalty and reducing/normalzing our distance reward so that it does not overwhelm our reward system. Additionally, we used ChatGPT to generate the necessary regular expression needed to parse slurm files to get training data for our evaluation.
