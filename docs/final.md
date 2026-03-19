@@ -78,6 +78,7 @@ For our phase 1 reward system, we started with an extremely simple reward system
   Your browser does not support the video tag.
 </video>
     <figcaption>Example of a snake rushing towards the wall instead of the fruit in order to end the run.</figcaption>
+    <br>
 </figure>
 
 As we tuned our reward system, we observed several persistent undesirable behaviors such as circling the fruit instead of eating it, intentionally killing itself early on, and taking excessively long and winding paths. Circling the fruit was due to us rewarding the snake based on distance, and so it began prioritizing staying close instead of eating the fruit and hunting for the next one. Intentionally dying early on was because we introduced a survival pressure hoping that it would motivate the snake into finding the fruit faster, but because our initial survival pressure was too high the snake decided that it could get a less negative reward by dying soon. Excessive turning was also due to its desire to shorten the distance quickly at each time step, and so we penalized turning by a little. We also discovered that we had to be very careful with our penalizations, since being even a little too aggressive would throw the snake off entirely. For example, when we tried to reduce the turns the snake made by penalizing turns heavily, it would wound up making less turns but misses the apple.
@@ -98,6 +99,7 @@ In the end, our final phase 1 reward system was:
   Your browser does not support the video tag.
 </video>
     <figcaption>Example of a run with the final reward system for phase 1.</figcaption>
+    <br>
 </figure>
 
 This updated reward system helps the agent know that the fruit is the main goal of the training process, resulting in the snake agent focusing on the fruit rather than finding a fast way reduce its penalty as much as possible.
@@ -121,6 +123,7 @@ For our phase 2 reward system, our initial reward system was the same as phase 1
   Your browser does not support the video tag.
 </video>
     <figcaption>Example of a snake constantly running into the enemy fruit.</figcaption>
+    <br>
 </figure>
 
 As this second phase added two new fruits (the decay fruit and the enemy fruit) to the Snake game, we observed new issues:
@@ -156,6 +159,7 @@ Our final phase 2 reward system was:
   Your browser does not support the video tag.
 </video>
     <figcaption>Example of a run with the final reward system for phase 2.</figcaption>
+    <br>
 </figure>
 
 ### DQN 
@@ -166,7 +170,14 @@ We suspected that DQN performed poorly in our environment because our reward sys
 
 After simplifying down our reward system however, it did not do much better. The snake movements still looked largely erratic and random despite training on 1 million timesteps. The snake was, however, able to eat fruit very occasionally, which was an improvement from before.
 
-[video]
+<figure>
+<video width="320" height="240" controls>
+  <source src="./images/approach_dqn.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+    <figcaption>Example of a with the final DQN reward system.</figcaption>
+    <br>
+</figure>
 
 After some more exploration, our latest reward system was as follows:
 
@@ -202,13 +213,20 @@ After retrieving the results of our 1 million timestep training process, we noti
 
 For our training process, we evalauted its quantitative metrics through parsing the slurm file, and generated graphs:
 
-[graph]
+<img height="300" alt="phase_2_visual" src="images/training_summary_phase1.png" />
 
 Looking at the plot, we can observe that as training progresses, there is steady improvement in both the mean episode reward and mean episode length, with some fluctuations. This indicates that our agent was steadily improving and learning behaviors that allowed it to survive longer while collecting more apples. The improvement in performance appears to plateau slightly over time, which suggests that the agent is approaching convergence and is no longer discovering significantly better strategies.
 
 As mentioned in our Approach section, a lot of the undesirable behavior we had before (circling fruit, dying early, etc.) has been mostly eliminated. The snake has now become very intentional with its movement and the amount of turns it takes has reduced considerably. Through these videos, we can observe that the snake has learned to adopt the cheese mechanic and is able to use it for more efficient fruit collection or to avoid collision with the wall. Moreover, while we were evaluating our final model, we were able to see multiple 50+ runs. 
 
-[if possible, the series of 50+ runs that we had]
+<figure>
+<video width="320" height="240" controls>
+  <source src="./images/phase1_55.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+    <figcaption>Example of a with the final DQN reward system.</figcaption>
+    <br>
+</figure>
 
 Additionally, the performance of our final model is shown below, averaged across 50 episodes:
 
@@ -227,13 +245,13 @@ We also similarly saw a vast jump in performance for phase 2:
 
 Our training process' slurm file also produced the following quantitative metrics:
 
-[graph]
+<img height="300" alt="phase_2_visual" src="images/training_summary_NL4_ep.png" />
 
 We can see from these graphs that while the training was not as stable as in Phase 1, there is still overall improvement as training progresses, even though the fluctuations are more extreme. This is expected since our Phase 2 environment is much more complicated than before. The decay fruit can respawn before being eaten and the enemy fruit moves every timestep, both of which introduce more variation in the rewards and make each run less predictable. Because of this, the training curves appear noisier, but they also show that the agent is learning to handle a more dynamic environment. Additionally, there are situations where the snake can safely move through an enemy fruit’s path, only for the enemy fruit to later collide with one of its body tiles, which creates unavoidable negative outcomes that add to the variation in rewards. The reward values are also much higher compared to Phase 1 because our updated reward system accounts for more behaviors and increases the value of collecting fruit.
 
 During phase 2, we also included a way for us to log our fruit counts in slurm so that we have a better idea of how our model is behaving with respect to each fruit:
 
-[graph]
+<img height="300" alt="phase_2_visual_fruit" src="images/training_summary_NL4_fruit.png" />
 
 From the graphs about the fruit, we are alo able to observe that the snake heavily favored decay fruit. Regular fruit was largely ignored, and the snake even seemed to run into the enemy fruit at a higher frequency than regular fruit, though this could be due to what we mentioned above where the enemy fruit collided with a later body part.
 
@@ -254,9 +272,16 @@ The performance of our final model is shown below, averaged across 50 episodes:
 
 These metrics also show the same fruit preference pattern. We can also note the average score of 20.24. This is likely because the agent is still somewhat unstable, which may be due to the environment dynamics such as the decay fruit and enemy fruit movement patterns that can sometimes cause many collisions or early deaths. However, the average episode length suggests that the snake usually survives for a long time before dying, indicating that it has still learned reasonably effective survival behavior.
 
-Here are some of our runs below, where it reinforces a lot of the fruit-seeking and navigation behavior we already discussed above:
+Here is one of our best runs below, where it reinforces a lot of the fruit-seeking and navigation behavior we already discussed above:
 
-[videos]
+<figure>
+<video width="320" height="240" controls>
+  <source src="./images/phase2_45.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+    <figcaption>Example of a with the final DQN reward system.</figcaption>
+    <br>
+</figure>
 
 ### DQN
 For DQN, while we saw some improvement, it ultimately did not see significant development like our first two phases:
@@ -267,7 +292,7 @@ For DQN, while we saw some improvement, it ultimately did not see significant de
 
 The slurm file provided the following training metrics:
 
-[plot]
+<img height="300" alt="dqn_visual" src="images/training_summary_DQN6.png" />
 
 From these plots, you can see that the performance is substantially worse than PPO, and that the snake agent largely favored simply surviving over increasing its score. This can be seen in the episode length mean being almost on par with phase 2's, but the reward mean is much lower and even in the negatives for a really long time, indicating that it spends a long time not collecting any fruit at all, accumulating survival penalty before dying.
 
@@ -290,7 +315,14 @@ From these metrics, we can see that it collects fruits very rarely, and it actua
 
 Here is one of the better runs with DQN:
 
-[video]
+<figure>
+<video width="320" height="240" controls>
+  <source src="./images/eval_dqn.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+    <figcaption>Example of a with the final DQN reward system.</figcaption>
+    <br>
+</figure>
 
 ## Resources Used
 
