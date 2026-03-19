@@ -1,0 +1,2 @@
+average_reward,std_reward,average_length,average_score,std_length,max_reward,min_reward,avg_fruit,avg_decayfruit,avg_enemyfruit
+3.0026505953525646,40.60002953871339,565.9,1.8,561.7991901026558,85.3614606112556,-80.6908675074325,0.16,0.7,0.5
