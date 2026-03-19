@@ -1,15 +1,14 @@
-img, table, video {
+.center, table {
   display: block;
   margin: auto;
 }
 
 table {
-  border:1px solid black;
+  border: 1px solid black;
   border-collapse: collapse;
 }
 
 th, td {
-  border: 1px solid black;
   padding: 5px;
 }
 

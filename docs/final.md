@@ -13,7 +13,7 @@ This project consists of two phases:
 
 In this phase, we kept the basic cheese variation setup, as described above. The main goals of this phase were to try to maximize fruit score and to eliminate highly undesirable behavior early on so that these issues don't persist in phase 2, when our setup becomes much more complicated.
 
-<img height="300" alt="phase_1_visual" src="images/phase_1_visual.jpg" />
+<img class="center" height="300" alt="phase_1_visual" src="images/phase_1_visual.jpg" />
 
 ### Phase 2: Additional Special Fruit
 
@@ -21,7 +21,7 @@ In this phase, two additional fruits were added: the decay fruit and the enemy f
 
 Altogether, these features create a dynamic environment where the agent must plan ahead, balance immediate and future rewards, and adapt to changing conditions. A non-RL approach, such as a fixed algorithm, would struggle to handle the many complex, case-by-case situations that can arise. Even in the classic cheese variation, fully exploiting the gaps in the snake’s body is challenging, as the snake has increased freedom to move through itself in order to avoid death or efficiently collect fruit. With the addition of decaying and enemy fruit, the agent must also strategically choose which fruit to pursue based on location and timing. Machine learning algorithms are well suited to this type of dynamic environment, as they allow the agent to learn strategies from experience and make decisions that balance both short-term rewards and long-term outcomes. Through this project, we aim to discover what an optimal strategy looks like for our environment and understand how our RL agent can effectively navigate the snake’s gaps, weigh trade-offs to prioritize fruit, and adapt to a constantly changing game state in order to maximize its score.
 
-<img height="300" alt="phase_2_visual" src="images/phase_2_visual.jpg" />
+<img class="center" height="300" alt="phase_2_visual" src="images/phase_2_visual.jpg" />
 
 ### DQN
 
@@ -72,7 +72,7 @@ For our phase 1 reward system, we started with an extremely simple reward system
 - **-1** if the game terminated (snake agent ran into a wall or itself)
 - **-0.01** for every action the snake took to encourage fruit consumption
 
-<figure>
+<figure class="center">
 <video width="320" height="240" controls>
   <source src="./images/eval-episode-64.mp4" type="video/mp4">
   Your browser does not support the video tag.
@@ -96,7 +96,7 @@ In the end, our final phase 1 reward system was:
 - **+0.1** if the chosen action resulted in the snake agent getting closer to the fruit
 - **-0.1** if the chosen action resulted in the snake agent getting farther from the fruit
 
-<figure>
+<figure class="center">
 <video width="320" height="240" controls>
   <source src="./images/eval-episode-64.mp4" type="video/mp4">
   Your browser does not support the video tag.
@@ -120,7 +120,7 @@ Our observation space for phase 2 consists of the following:
 
 For our phase 2 reward system, our initial reward system was the same as phase 1's final reward system.
 
-<figure>
+<figure class="center">
 <video width="320" height="240" controls>
   <source src="./images/phase2_initial.mp4" type="video/mp4">
   Your browser does not support the video tag.
@@ -158,7 +158,7 @@ Our final phase 2 reward system was:
 - **-2S** move toward enemy fruit to heavily discourage it
 - **+(1 + 2 * value_ratio) * S** for eating decay fruit. `value_ratio` is equal to $$\frac{\text{current value of the fruit}}{\text{maximum value of the fruit}}$$, to let the snake know the sooner it collects decay, the better.
 
-<figure>
+<figure class="center">
 <video width="320" height="240" controls>
   <source src="./images/phase2_final.mp4" type="video/mp4">
   Your browser does not support the video tag.
@@ -175,7 +175,7 @@ We suspected that DQN performed poorly in our environment because our reward sys
 
 After simplifying down our reward system however, it did not do much better. The snake movements still looked largely erratic and random despite training on 1 million timesteps. The snake was, however, able to eat fruit very occasionally, which was an improvement from before.
 
-<figure>
+<figure class="center">
 <video width="320" height="240" controls>
   <source src="./images/approach_dqn.mp4" type="video/mp4">
   Your browser does not support the video tag.
@@ -218,13 +218,13 @@ After retrieving the results of our 1 million timestep training process, we noti
 
 For our training process, we evalauted its quantitative metrics through parsing the slurm file, and generated graphs:
 
-<img height="300" alt="phase_2_visual" src="images/training_summary_phase1.png" />
+<img class="center" height="300" alt="phase_2_visual" src="images/training_summary_phase1.png" />
 
 Looking at the plot, we can observe that as training progresses, there is steady improvement in both the mean episode reward and mean episode length, with some fluctuations. This indicates that our agent was steadily improving and learning behaviors that allowed it to survive longer while collecting more apples. The improvement in performance appears to plateau slightly over time, which suggests that the agent is approaching convergence and is no longer discovering significantly better strategies.
 
 As mentioned in our Approach section, a lot of the undesirable behavior we had before (circling fruit, dying early, etc.) has been mostly eliminated. The snake has now become very intentional with its movement and the amount of turns it takes has reduced considerably. Through these videos, we can observe that the snake has learned to adopt the cheese mechanic and is able to use it for more efficient fruit collection or to avoid collision with the wall. Moreover, while we were evaluating our final model, we were able to see multiple 50+ runs. 
 
-<figure>
+<figure class="center">
 <video width="320" height="240" controls>
   <source src="./images/phase1_55.mp4" type="video/mp4">
   Your browser does not support the video tag.
@@ -250,13 +250,13 @@ We also similarly saw a vast jump in performance for phase 2:
 
 Our training process' slurm file also produced the following quantitative metrics:
 
-<img height="300" alt="phase_2_visual" src="images/training_summary_NL4_ep.png" />
+<img class="center" height="300" alt="phase_2_visual" src="images/training_summary_NL4_ep.png" />
 
 We can see from these graphs that while the training was not as stable as in Phase 1, there is still overall improvement as training progresses, even though the fluctuations are more extreme. This is expected since our Phase 2 environment is much more complicated than before. The decay fruit can respawn before being eaten and the enemy fruit moves every timestep, both of which introduce more variation in the rewards and make each run less predictable. Because of this, the training curves appear noisier, but they also show that the agent is learning to handle a more dynamic environment. Additionally, there are situations where the snake can safely move through an enemy fruit’s path, only for the enemy fruit to later collide with one of its body tiles, which creates unavoidable negative outcomes that add to the variation in rewards. The reward values are also much higher compared to Phase 1 because our updated reward system accounts for more behaviors and increases the value of collecting fruit.
 
 During phase 2, we also included a way for us to log our fruit counts in slurm so that we have a better idea of how our model is behaving with respect to each fruit:
 
-<img height="300" alt="phase_2_visual_fruit" src="images/training_summary_NL4_fruit.png" />
+<img class="center" height="300" alt="phase_2_visual_fruit" src="images/training_summary_NL4_fruit.png" />
 
 From the graphs about the fruit, we are alo able to observe that the snake heavily favored decay fruit. Regular fruit was largely ignored, and the snake even seemed to run into the enemy fruit at a higher frequency than regular fruit, though this could be due to what we mentioned above where the enemy fruit collided with a later body part.
 
@@ -279,7 +279,7 @@ These metrics also show the same fruit preference pattern. We can also note the 
 
 Here is one of our best runs below, where it reinforces a lot of the fruit-seeking and navigation behavior we already discussed above:
 
-<figure>
+<figure class="center">
 <video width="320" height="240" controls>
   <source src="./images/phase2_45.mp4" type="video/mp4">
   Your browser does not support the video tag.
@@ -291,7 +291,7 @@ Here is one of our best runs below, where it reinforces a lot of the fruit-seeki
 ### DQN
 For DQN, while we saw some improvement, it ultimately did not see significant development like our first two phases:
 
-<figure>
+<figure class="center">
 <video width="320" height="240" controls>
   <source src="./images/init_dqn.mp4" type="video/mp4">
   Your browser does not support the video tag.
@@ -299,7 +299,7 @@ For DQN, while we saw some improvement, it ultimately did not see significant de
     <figcaption>Before DQN training.</figcaption>
 </figure>
 
-<figure>
+<figure class="center">
 <video width="320" height="240" controls>
   <source src="./images/final_dqn.mp4" type="video/mp4">
   Your browser does not support the video tag.
@@ -310,7 +310,7 @@ For DQN, while we saw some improvement, it ultimately did not see significant de
 
 The slurm file provided the following training metrics:
 
-<img height="300" alt="dqn_visual" src="images/training_summary_DQN6.png" />
+<img class="center" height="300" alt="dqn_visual" src="images/training_summary_DQN6.png" />
 
 From these plots, you can see that the performance is substantially worse than PPO, and that the snake agent largely favored simply surviving over increasing its score. This can be seen in the episode length mean being almost on par with phase 2's, but the reward mean is much lower and even in the negatives for a really long time, indicating that it spends a long time not collecting any fruit at all, accumulating survival penalty before dying.
 
