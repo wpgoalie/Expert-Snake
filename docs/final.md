@@ -291,9 +291,22 @@ Here is one of our best runs below, where it reinforces a lot of the fruit-seeki
 ### DQN
 For DQN, while we saw some improvement, it ultimately did not see significant development like our first two phases:
 
-[initial video]
+<figure>
+<video width="320" height="240" controls>
+  <source src="./images/init_dqn.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+    <figcaption>Before DQN training.</figcaption>
+</figure>
 
-[final video]
+<figure>
+<video width="320" height="240" controls>
+  <source src="./images/final_dqn.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+    <figcaption>After DQN training.</figcaption>
+    <br>
+</figure>
 
 The slurm file provided the following training metrics:
 
@@ -316,18 +329,7 @@ The performance of our final model is shown below, averaged across 50 episodes:
 | Avg Decay Fruit   | 0.96   |
 | Avg Enemy Fruit   | 1.16   |
 
-From these metrics, we can see that it collects fruits very rarely, and it actually seems to favor regular fruit a littl emore than decay fruit, which is surprising. However, it does run into enemy fruit quite often. The average of 2.54 is also extremely low, most likely due to not really collecting fruit and accumulating various penalties over time before dying.
-
-Here is one of the better runs with DQN:
-
-<figure>
-<video width="320" height="240" controls>
-  <source src="./images/eval_dqn.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
-    <figcaption>Example with the final DQN reward system.</figcaption>
-    <br>
-</figure>
+From these metrics, we can see that it collects fruits very rarely, and it actually seems to favor regular fruit a little more than decay fruit, which is surprising. However, it does run into enemy fruit quite often. The average of 2.54 is also extremely low, most likely due to not really collecting fruit and accumulating various penalties over time before dying.
 
 ## Resources Used
 
