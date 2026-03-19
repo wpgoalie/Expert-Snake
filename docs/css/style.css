@@ -1,4 +1,5 @@
 img, table, video {
+  display: block;
   margin: auto;
 }
 

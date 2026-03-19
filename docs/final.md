@@ -83,10 +83,10 @@ For our phase 1 reward system, we started with an extremely simple reward system
 
 As we tuned our reward system, we observed several persistent undesirable behaviors such as circling the fruit instead of eating it, intentionally killing itself early on, and taking excessively long and winding paths. Circling the fruit was due to us rewarding the snake based on distance, and so it began prioritizing staying close instead of eating the fruit and hunting for the next one. Intentionally dying early on was because we introduced a survival pressure hoping that it would motivate the snake into finding the fruit faster, but because our initial survival pressure was too high the snake decided that it could get a less negative reward by dying soon. Excessive turning was also due to its desire to shorten the distance quickly at each time step, and so we penalized turning by a little. We also discovered that we had to be very careful with our penalizations, since being even a little too aggressive would throw the snake off entirely. For example, when we tried to reduce the turns the snake made by penalizing turns heavily, it would wound up making less turns but misses the apple.
 
-<img height="250" alt="phase_1_training_1" src="images/phase_1_training_1.gif" />
-<img height="250" alt="phase_1_training_2" src="images/phase_1_training_2.gif" />
-<img height="250" alt="phase_1_training_3" src="images/phase_1_training_3.gif" /> 
-<img height="250" alt="phase_1_training_4" src="images/phase_1_training_4.gif" />
+<img height="200" alt="phase_1_training_1" src="images/phase_1_training_1.gif" />
+<img height="200" alt="phase_1_training_2" src="images/phase_1_training_2.gif" />
+<img height="200" alt="phase_1_training_3" src="images/phase_1_training_3.gif" /> 
+<img height="200" alt="phase_1_training_4" src="images/phase_1_training_4.gif" />
 
 In the end, our final phase 1 reward system was:
 - **+2** if the score increased after the chosen action
@@ -134,9 +134,9 @@ As this second phase added two new fruits (the decay fruit and the enemy fruit) 
 - The snake agent couldn't decide whether to eat the regular fruit or the decay fruit, going back and forth without eating either of them
 - The snake agent ignored the regular fruit in many cases, chasing solely the decay fruit, even if it wouldn't reach the decay fruit in time 
 
-<img height="250" alt="phase_2_training_1" src="images/phase_2_training_1.gif" />
-<img height="250" alt="phase_2_training_2" src="images/phase_2_training_2.gif" />
-<img height="250" alt="phase_2_training_3" src="images/phase_2_training_3.gif" /> 
+<img height="200" alt="phase_2_training_1" src="images/phase_2_training_1.gif" />
+<img height="200" alt="phase_2_training_2" src="images/phase_2_training_2.gif" />
+<img height="200" alt="phase_2_training_3" src="images/phase_2_training_3.gif" /> 
 
 To improve learning, we introduced a distance-based shaping term that provides feedback on the snake’s progress toward the nearest fruit, encouraging efficient fruit collection. Distances are normalized using the Euclidean distance across the grid to ensure that reward changes are proportional, regardless of the snake’s position. The shaping term's formula is:
 
