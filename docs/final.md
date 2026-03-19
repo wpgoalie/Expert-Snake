@@ -37,7 +37,7 @@ $$
 L\frac{\theta}{\theta}(s,a)=min(\rho\frac{\theta}{\theta}(a|s)A_{\overline{\theta}}(s,a), {A_{\overline{\theta}}(s,a)}+{|\epsilon A_{\overline{\theta}}(s,a)|}
 $$
 
-For the environment setup, we adapted a classic snake game pygame provided by [github](https://www.geeksforgeeks.org/python/snake-game-in-python-using-pygame-module/) into the cheese variation and added configurable parameters such as board size and optional rendering and debug modes. We then linked this pygame with a Gymnasium environment. In phase 2, we made further adjustments to the snake game so that it can fully support all the different types of fruit and the behavior it induces on the snake.
+For the environment setup, we adapted a classic snake game pygame provided by this [GeeksForGeeks article](https://www.geeksforgeeks.org/python/snake-game-in-python-using-pygame-module/) into the cheese variation and added configurable parameters such as board size and optional rendering and debug modes. We then linked this pygame with a Gymnasium environment. In phase 2, we made further adjustments to the snake game so that it can fully support all the different types of fruit and the behavior it induces on the snake.
 
 We decided to train on 1 million timesteps for both phases. However, at the very beginning of phase 1, we did train on 25k-50k timesteps in order to verify our setup. Additionally, we kept the default PPO parameters because PPO is very sensitive to hyperparameters and can quickly become unstable, and whenever we made adjustments to its parameters the results were always significantly worse. These hyperparameters are defined in [Stable-Baselines3 PPO documentation](https://stable-baselines3.readthedocs.io/en/master/modules/ppo.html), and are as follows:
 
@@ -124,11 +124,11 @@ $$
 S=0.5\times\frac{d_{prev} - d_{curr}}{\sqrt{L^2_x+L^2_y}}
 $$
 
-where  $d_{prev}$ and $d_{curr}$ are the distances between the snake head and the target fruit before and after it takes a step, and $L_x$ and $L_y$ are the board dimensions. Shaping adjustments were also applied based on each type of fruit so that the snake has the full context on which fruit would be the most helpful in score maximization.
+where  $$d_{prev}$$ and $$d_{curr}$$ are the distances between the snake head and the target fruit before and after it takes a step, and $L_x$ and $L_y$ are the board dimensions. Shaping adjustments were also applied based on each type of fruit so that the snake has the full context on which fruit would be the most helpful in score maximization.
 
 Our final phase 2 reward system was:
-- **+20** * $\times \Delta \text{score}$ on score increase
-- **−15** * $\times \Delta \text{score}$ on score decrease
+- **+20** * $$\times \Delta \text{score}$$ on score increase
+- **−15** * $$\times \Delta \text{score}$$ on score decrease
 - **-12** if the game terminated (snake agent ran into a wall, itself, or died to an enemy fruit)
 - **-0.01** for surviving
 - **-0.003** for changing directions
@@ -136,7 +136,7 @@ Our final phase 2 reward system was:
 - **+0.5** * (normalized distance change to closest fruit) for feedback on snake progress towards fruits
 - **+S** move toward regular fruit
 - **-2S** move toward enemy fruit to heavily discourage it
-- **+(1 + 2 * value_ratio) * S** for eating decay fruit. `value_ratio` is $\text{value\_ratio} = \frac{\text{current value of the fruit}}{\text{maximum value of the fruit}}$, to let the snake know the sooner it collects decay, the better.
+- **+(1 + 2 * value_ratio) * S** for eating decay fruit. `value_ratio` is $$\text{value\_ratio} = \frac{\text{current value of the fruit}}{\text{maximum value of the fruit}}$$, to let the snake know the sooner it collects decay, the better.
 
 <figure>
 <video width="320" height="240" controls>
