@@ -27,6 +27,8 @@ Altogether, these features create a dynamic environment where the agent must pla
 
 Towards the end of our project, since we had stable results for phases 1 and 2, we also attempted to train a Deep Q-Network (DQN) on our phase 2 environment to compare against PPO. We chose DQN because it is well-suited for discrete action spaces, and it learns a Q-value function that estimates the expected return for each action in a given state, which aligns naturally with the snake game’s setup. Our environment was the same as phase 2.
 
+---
+
 ## Approach
 
 We focused on using the Proximal Policy Optimization (PPO) algorithm to train our agents in both phases of our project. We decided on using this algorithm because our action space is discrete (at each time step, we have the option of left, right, or forward), which PPO works well with. We train the PPO agent with the `MultiInputPolicy` from `Stable-Baselines3`, since its support for dictionary observation spaces is beneficial for including multiple types of information in our observation space, as will be discussed in more detail later in the report. Specifically, we use the clip version of the PPO algorithm. This was since the clip version prevents drastic updates to the policy itself, allowing the agent can improve gradually through fine-tuning how it should navigate body gaps, prioritize fruits, and avoid hazards without ignoring previously effective strategies. Clipping the probability ratio prevents the agent from making drastic jumps that abandon successful behavior in place of erratic turns, which could easily land the snake in a terminated state since one wrong turn can cause it to overconsume enemy fruit and hit the wall or itself. Policies are updated using:
@@ -205,18 +207,14 @@ All the other original hyperparameters can be referenced in the Stable-Baselines
 
 In conclusion and after some research, while DQN can perform reasonably well in simpler environments with discrete actions, it struggled in our Phase 2 Snake environment due to the complexity and dynamics introduced by the decaying and enemy fruits. Additionally, DQN’s reliance on epsilon-greedy exploration proved inefficient in an environment that constantly changes, as the agent could not explore effectively without either over- or under-prioritizing certain states. Overall, these limitations indicate that DQN is better suited for less dynamic or simpler versions of the Snake game, whereas more adaptive methods like PPO are more appropriate for more complex environments such as moving hazards or decaying rewards (Zhang, 2025).
 
+---
+
 ## Evaluation
 
 For each phase, we evaluated quantitative training metrics and final model performance averages across 50 episodes in addition to analyzing snake behavior through the recorded videos.
 
 ### Phase 1
-After retrieving the results of our 1 million timestep training process, we noticed significant improvement between initial stages of training:
-
-[initial video]
-
-[final video]
-
-For our training process, we evalauted its quantitative metrics through parsing the slurm file, and generated graphs:
+After retrieving the results of our 1 million timestep training process, we noticed significant improvement between initial stages of training. For our training process, we evalauted its quantitative metrics through parsing the slurm file, and generated graphs:
 
 <img class="center" height="300" alt="phase_1_visual" src="images/training_summary_phase1.png" />
 
@@ -235,20 +233,22 @@ As mentioned in our Approach section, a lot of the undesirable behavior we had b
 
 Additionally, the performance of our final model is shown below, averaged across 50 episodes:
 
------ 
+| Metric           | Value  |
+|------------------|--------|
+| Average Reward   | 55.45  |
+| Reward Std Dev   | 31.09  |
+| Average Length   | 422.96 |
+| Average Score    | 21.66  |
+| Length Std Dev   | 236.31 |
+| Max Reward       | 131.45 |
+| Min Reward       | 1.98   |
 
-[description]
+These metrics indicate that the snake is generally able to survive for long periods of time, as shown by the high average episode length of 422.96. The average score of 21.66 suggests that the agent is able to consistently collect fruit and maintain successful runs. Although the standard deviations for reward and episode length are relatively large, this is expected due to the randomness of the environment, where fruit spawning and enemy fruit movement can vary significantly between episodes. During evaluation, we frequently observed runs reaching scores of 30 or higher, with some exceeding 50, demonstrating that the agent is capable of strong performance. The lower average score is likely influenced by occasional early deaths in some runs, which pull the mean downward despite many successful episodes. Overall, these results indicate that the agent learned effective strategies for survival and fruit collection, even though the randomness of the environment can sometimes lead to inconsistent outcomes.
 
 While the snake ultimately was very successful, we still had some small issues, such as our snake agent sometimes still taking many more turns than necessary. However, this was unavoidable since harshly penalizing turning would lead to the snake "missing" the apple and having to repeatedly cycle. One downside of keeping this issue was that it sometimes led to the snake dying because its body had become too tangled for the snake to maneuver out of, as any movement would end in a termination. 
 
 ### Phase 2
-We also similarly saw a vast jump in performance for phase 2:
-
-[initial video]
-
-[final video]
-
-Our training process' slurm file also produced the following quantitative metrics:
+We also similarly saw a vast jump in performance for phase 2. Our training process' slurm file also produced the following quantitative metrics:
 
 <img class="center" height="300" alt="phase_2_visual" src="images/training_summary_NL4_ep.png" />
 
