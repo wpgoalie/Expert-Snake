@@ -7,7 +7,7 @@ title: Final Report
 
 ## Project Summary:
 
-Our RL project focuses on the Snake game's "cheese" variation, where the snake now has a gap in between every single body part following the head, allowing it to maneuver through its own body. This addition to the original game introduces a lot more freedom of movement into the game, since now the snake does not have to actively work around its own body, but also has to be careful to time its maneuvers correctly. Much like the classic version, the snake agent can choose to turn right, turn left, or continue going forward. The snake will also terminate once it collides with the wall or itself. Whenever the snake eats an apple, the snake will add a new body tile and gap. Our project uses the Proximal Policy Optimization (PPO) algorithm to train our snake agents to maximize the total game score and to efficiently navigate the board while doing so. Our project focused on a grid of size 30 by 24 tiles with the snake initially having 4 body tiles.
+Our RL project focuses on the Snake game's "cheese" variation, where the snake has gaps in between its body segments, allowing it to maneuver through itself if needed. This addition to the original game introduces a lot more freedom of movement into the game, since now the snake does not have to actively work around its own body, but also has to be careful to time its maneuvers correctly. Much like the classic version, the snake agent can choose to turn right, turn left, or continue going forward. The snake will also terminate once it collides with the wall or itself. Whenever the snake eats an apple, the snake will add a new body tile and gap. Our project uses the Proximal Policy Optimization (PPO) algorithm to train our snake agents to maximize the total game score and to efficiently navigate the board while doing so. Our project focused on a grid of size 30 by 24 tiles with the snake initially having 4 body tiles.
 
 This project consists of two phases:
 
@@ -23,7 +23,7 @@ In this phase, two additional fruits were added: the decay fruit and the enemy f
 
 <img class="center" height="300" alt="phase_2_visual" src="images/phase_2_visual.jpg" />
 
-Altogether, these features create a dynamic environment where the agent must plan ahead, balance immediate and future rewards, and adapt to changing conditions. A non-RL approach, such as a fixed algorithm, would struggle to handle the many complex, case-by-case situations that can arise. Even in the classic cheese variation, fully exploiting the gaps in the snake’s body is challenging, as the snake has increased freedom to move through itself in order to avoid death or efficiently collect fruit. With the addition of decaying and enemy fruit, the agent must also strategically choose which fruit to pursue based on location and timing. Machine learning algorithms are well suited to this type of dynamic environment, as they allow the agent to learn strategies from experience and make decisions that balance both short-term rewards and long-term outcomes. Through this project, we aim to discover what an optimal strategy looks like for our environment and understand how our RL agent can effectively navigate the snake’s gaps, weigh trade-offs to prioritize fruit, and adapt to a constantly changing game state in order to maximize its score.
+Altogether, these features create a dynamic environment where the agent must plan ahead, balance immediate and future rewards, and adapt to changing conditions. A non-RL approach, such as a fixed algorithm, would struggle with handling the many complex, case-by-case situations that can arise. Even in the classic cheese variation, fully exploiting the gaps in the snake’s body is challenging, as the snake has increased freedom to move through itself in order to avoid death or efficiently collect fruit. With the addition of decaying and enemy fruit, the agent must also strategically choose which fruit to pursue based on location and timing. Machine learning algorithms are well suited to this type of dynamic environment, as they allow the agent to learn strategies from experience and make decisions that balance both short-term rewards and long-term outcomes. Through this project, we aim to discover what an optimal strategy looks like for our environment and understand how our RL agent can effectively navigate the snake’s gaps, weigh trade-offs to prioritize fruit, and adapt to a constantly changing game state in order to maximize its score.
 
 ### DQN
 
@@ -33,7 +33,7 @@ Towards the end of our project, since we had stable results for phases 1 and 2, 
 
 ## Approach
 
-We focused on using the Proximal Policy Optimization (PPO) algorithm to train our agents in both phases of our project. We decided on using this algorithm because our action space is discrete (at each time step, we have the option of left, right, or forward), which PPO works well with. We train the PPO agent with the `MultiInputPolicy` from `Stable-Baselines3`, since its support for dictionary observation spaces is beneficial for including multiple types of information in our observation space, as will be discussed in more detail later in the report. Specifically, we use the clip version of the PPO algorithm. This was since the clip version prevents drastic updates to the policy itself, allowing the agent can improve gradually through fine-tuning how it should navigate body gaps, prioritize fruits, and avoid hazards without ignoring previously effective strategies. Clipping the probability ratio prevents the agent from making drastic jumps that abandon successful behavior in place of erratic turns, which could easily land the snake in a terminated state since one wrong turn can cause it to overconsume enemy fruit and hit the wall or itself. Policies are updated using:
+We focused on using the Proximal Policy Optimization (PPO) algorithm to train our agents in both phases of our project. We decided on using this algorithm because our action space is discrete (at each time step, we have the option of left, right, or forward), which PPO works well with. We train the PPO agent with the `MultiInputPolicy` from `Stable-Baselines3`, since its support for dictionary observation spaces is beneficial for including multiple types of information in our observation space, as will be discussed in more detail later in the report. Specifically, we use the clip version of the PPO algorithm. This is because the clip version prevents drastic updates to the policy itself, allowing the agent to improve gradually through fine-tuning how it should navigate body gaps, prioritize fruits, and avoid hazards without ignoring previously effective strategies. Clipping the probability ratio prevents the agent from making drastic jumps that abandon successful behavior in place of erratic turns, which could easily land the snake in a terminated state since one wrong turn can cause it to overconsume enemy fruit and hit the wall or itself. Policies are updated using:
 
 $$
 {E}_{(s,a)∼p\overline{\theta}}[L\frac{\theta}{\theta}(s,a)] 
@@ -85,7 +85,7 @@ For our phase 1 reward system, we started with an extremely simple reward system
     <br>
 </figure>
 
-As we tuned our reward system, we observed several persistent undesirable behaviors such as circling the fruit instead of eating it, intentionally killing itself early on, and taking excessively long and winding paths. Circling the fruit was due to us rewarding the snake based on distance, and so it began prioritizing staying close instead of eating the fruit and hunting for the next one. Intentionally dying early on was because we introduced a survival pressure hoping that it would motivate the snake into finding the fruit faster, but because our initial survival pressure was too high the snake decided that it could get a less negative reward by dying soon. Excessive turning was also due to its desire to shorten the distance quickly at each time step, and so we penalized turning by a little. We also discovered that we had to be very careful with our penalizations, since being even a little too aggressive would throw the snake off entirely. For example, when we tried to reduce the turns the snake made by penalizing turns heavily, it would wound up making less turns but misses the apple.
+As we tuned our reward system, we observed several persistent undesirable behaviors such as circling the fruit instead of eating it, intentionally killing itself early on, and taking excessively long and winding paths. Circling the fruit was due to us rewarding the snake based on distance, and so it began prioritizing staying close instead of eating the fruit and hunting for the next one. Intentionally dying early on was because we introduced a survival pressure hoping that it would motivate the snake into finding the fruit faster, but because our initial survival pressure was too high the snake decided that it could get a less negative reward by dying soon. Excessive turning was also due to its desire to shorten the distance quickly at each time step, and so we penalized turning by a little. We also discovered that we had to be very careful with our penalizations, since being even a little too aggressive would throw the snake off entirely. For example, when we tried to reduce the turns the snake made by penalizing turns heavily, it would end up making fewer turns but miss the apple.
 
 <img height="200" alt="phase_1_training_1" src="images/phase_1_training_1.gif" />
 <img height="200" alt="phase_1_training_2" src="images/phase_1_training_2.gif" />
@@ -109,7 +109,7 @@ In the end, our final phase 1 reward system was:
     <br>
 </figure>
 
-This updated reward system helps the agent know that the fruit is the main goal of the training process, resulting in the snake agent focusing on the fruit rather than finding a fast way reduce its penalty as much as possible.
+This updated reward system helped the agent learn that the fruit was the main goal of the training process, resulting in the snake agent focusing on the fruit rather than finding a way to reduce its penalty as much as possible.
 
 ### Phase 2
 #### Observation Space
@@ -117,7 +117,7 @@ This updated reward system helps the agent know that the fruit is the main goal 
 Our observation space for phase 2 consists of the following:
 - "agent": snake head's current position on the grid (2D coordinate)
 - "fruits": current positions and normalized values of all three fruits (regular fruit, decay fruit, enemy fruit) in the form: `[x, y, normalized_score_value]` for each fruit stored in a 2D array
-- "danger": indicates whether moving in each cardinal direction (up, down, left, right) would result in collision with itself or a wall, using a dictionary of where dangers are based on direction
+- "danger": indicates whether moving in each cardinal direction (up, down, left, right) would result in a collision with itself or a wall, using a dictionary of where dangers are based on direction
 - **"enemy_danger"**: indicates whether the next move of the enemy fruit on its set square path would result in the snake eating the fruit
 
 #### Reward System
@@ -173,7 +173,7 @@ Our final phase 2 reward system was:
 
 ### DQN 
 
-The initial reward system was based off our best one in phase 2. In general, the snake agent's performance was abysmal and ate no fruit at all, instead heavily favoring survival only.
+The initial reward system was based on our best one in phase 2. In general, the snake agent's performance was abysmal and ate no fruit at all, instead heavily favoring survival only.
 
 We suspected that DQN performed poorly in our environment because our reward system was too complex for DQN. The agent had to consider multiple factors simultaneously, such as distance to several fruit types, decaying fruit values, and enemy fruit positions. This likely made the Q-function difficult to approximate, since DQN assumes a single flat input vector and a relatively simple mapping from state to action values. Our dictionary-based observation space had to be flattened, which may have disrupted the spatial relationships and context the agent relied on to make decisions.
 
@@ -216,7 +216,7 @@ In conclusion and after some research, while DQN can perform reasonably well in 
 For each phase, we evaluated quantitative training metrics and final model performance averages across 50 episodes in addition to analyzing snake behavior through the recorded videos.
 
 ### Phase 1
-After retrieving the results of our 1 million timestep training process, we noticed significant improvement between initial stages of training. For our training process, we evalauted its quantitative metrics through parsing the slurm file, and generated graphs:
+After retrieving the results of our 1 million timestep training process, we noticed significant improvement between initial stages of training. For our training process, we evaluated its quantitative metrics through parsing the slurm file, and generated graphs:
 
 <img class="center" height="300" alt="phase_1_visual" src="images/training_summary_phase1.png" />
 
@@ -260,7 +260,7 @@ During phase 2, we also included a way for us to log our fruit counts in slurm s
 
 <img class="center" height="300" alt="phase_2_visual_fruit" src="images/training_summary_NL4_fruit.png" />
 
-From the graphs about the fruit, we are alo able to observe that the snake heavily favored decay fruit. Regular fruit was largely ignored, and the snake even seemed to run into the enemy fruit at a higher frequency than regular fruit, though this could be due to what we mentioned above where the enemy fruit collided with a later body part.
+From the graphs about the fruit, we are also able to observe that the snake heavily favored decay fruit. Regular fruit was largely ignored, and the snake even seemed to run into the enemy fruit at a higher frequency than regular fruit, though this could be due to what we mentioned above where the enemy fruit collided with a later body part.
 
 The performance of our final model is shown below, averaged across 50 episodes:
 
@@ -345,6 +345,6 @@ From these metrics, we can see that it collects fruits very rarely, and it actua
 - [GeeksforGeeks Snake Pygame Implementation Tutorial](https://www.geeksforgeeks.org/python/snake-game-in-python-using-pygame-module/) used for setting up the base code of the classic Snake game using the Pygame library
 - [Pygame Documentation](https://www.pygame.org/docs/) used to add on additional features to the base code of the Snake game, including the "snake" variation
 - [Google Snake Game Cheese Mode Wiki Article](https://google-snake.fandom.com/wiki/Cheese_Mode) used for learning more about the "cheese" variation of the Snake game
-- [DQN Documentation](https://stable-baselines3.readthedocs.io/en/master/modules/dqn.html) to reference hyperparamteres and their effects
+- [DQN Documentation](https://stable-baselines3.readthedocs.io/en/master/modules/dqn.html) to reference hyperparamters and their effects
 - [Application and Optimization of Reinforcement Learning Based on Deep Q-Network (DQN) in Complex Environments](https://www.researchgate.net/publication/389103450_Application_and_Optimization_of_Reinforcement_Learning_Based_on_Deep_Q-Network_DQN_in_Complex_Environments) for researching why DQN had poor performance
-- [ChatGPT](https://chatgpt.com/) used for tailoring out reward system when we were stuck. We gave it details of what undesirable behavior the snake agent was exhibiting and how we were rewarding the agent currently, and asked what we did not consider. This led to adding a small survival penalty and reducing/normalzing our distance reward so that it does not overwhelm our reward system. Additionally, we used ChatGPT to generate the necessary regular expression needed to parse slurm files to get training data for our evaluation.
+- [ChatGPT](https://chatgpt.com/) used for tailoring our reward system when we were stuck. We gave it details of what undesirable behavior the snake agent was exhibiting and how we were rewarding the agent currently, and asked what we did not consider. This led to adding a small survival penalty and reducing/normalizing our distance reward so that it does not overwhelm our reward system. Additionally, we used ChatGPT to generate the necessary regular expression needed to parse slurm files to get training data for our evaluation.
